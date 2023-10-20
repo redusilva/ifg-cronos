@@ -23,6 +23,7 @@ export class UserController {
 
             return res.send({
                 token: login.token,
+                idUsuario: login.idUsuario,
                 mensagem: login.mensagem,
                 usuarioLogado: !login.token ? false : true
             });

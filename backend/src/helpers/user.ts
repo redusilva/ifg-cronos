@@ -102,7 +102,7 @@ const logaUsuario = async (email: string, senha: string) => {
             return { token: null, mensagem: 'Erro ao atualizar sessão!' };
         }
 
-        return { token, mensagem: 'Login efetuado com sucesso!' };
+        return { token, idUsuario: usuario?._id, mensagem: 'Login efetuado com sucesso!' };
     } catch (error: any) {
         throw new Error('Erro ao tentar fazer o login do usuário: ' + error.message);
     }
