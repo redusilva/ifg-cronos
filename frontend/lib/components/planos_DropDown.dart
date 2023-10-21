@@ -4,12 +4,14 @@ import 'package:flutter/cupertino.dart';
 class Dropdown extends StatefulWidget {
   final Map<String, String> planos;
   final ValueChanged<String?>? onChanged;
-
   Dropdown(this.planos, {this.onChanged});
 
   @override
-  String? selectedvalue;
+  String? _selectedvalue;
   _DropdownState createState() => _DropdownState();
+  String getValue() {
+    return _selectedvalue!;
+  }
 }
 
 class _DropdownState extends State<Dropdown> {
@@ -17,9 +19,9 @@ class _DropdownState extends State<Dropdown> {
 
   // Método para obter o valor selecionado
   void setSelectedValue() {
-    widget.selectedvalue = widget.planos[selectedOption];
+    widget._selectedvalue = widget.planos[selectedOption];
     if (widget.onChanged != null) {
-      widget.onChanged!(widget.selectedvalue);
+      widget.onChanged!(widget._selectedvalue);
     }
   }
 
@@ -34,7 +36,7 @@ class _DropdownState extends State<Dropdown> {
       // Para iOS, use o CupertinoPicker
       return Row(
         children: <Widget>[
-          Text(
+          const Text(
             "Plano:    ",
             style: TextStyle(
               color: Colors.green,
@@ -58,7 +60,7 @@ class _DropdownState extends State<Dropdown> {
                     children: widget.planos.keys.map((String value) {
                       return Text(
                         value,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black,
                         ),
@@ -70,7 +72,7 @@ class _DropdownState extends State<Dropdown> {
             },
             child: Text(
               selectedOption,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black,
               ),
@@ -84,7 +86,7 @@ class _DropdownState extends State<Dropdown> {
         alignment: Alignment.centerLeft,
         child: Row(
           children: <Widget>[
-            Text(
+            const Text(
               "Plano:    ",
               style: TextStyle(
                 color: Colors.green,
@@ -100,7 +102,7 @@ class _DropdownState extends State<Dropdown> {
                   setSelectedValue();
                 });
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.arrow_drop_down,
                 color: Colors.green,
               ),
@@ -111,7 +113,8 @@ class _DropdownState extends State<Dropdown> {
               elevation: 1,
               underline: Container(
                 height: 1,
-                color: Colors.green, // Adicionar uma linha de separação personalizada
+                color: Colors
+                    .green, // Adicionar uma linha de separação personalizada
               ),
               dropdownColor: Colors.green[100], // Cor de fundo do dropdown
               items: widget.planos.keys
@@ -120,7 +123,7 @@ class _DropdownState extends State<Dropdown> {
                   value: value,
                   child: Text(
                     value,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black,
                     ),

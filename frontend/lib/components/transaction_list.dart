@@ -20,7 +20,7 @@ class TransactionList extends StatelessWidget {
                   SizedBox(height: constraits.maxHeight * 0.05),
                   Text(
                     'Nenhuma arquivo enviado!',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   SizedBox(height: constraits.maxHeight * 0.05),
                   SizedBox(
@@ -50,7 +50,7 @@ class TransactionList extends StatelessWidget {
                     ),
                     title: Text(
                       tr.title,
-                      style: Theme.of(context).textTheme.headline6!.copyWith(
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize: 16, // Tamanho da fonte personalizado
                           ),
                     ),
@@ -81,18 +81,18 @@ class TransactionList extends StatelessWidget {
                           padding: const EdgeInsets.all(5.0),
                           child: IconButton(
                             icon: const Icon(Icons.delete),
-                            color: Theme.of(context).errorColor,
+                            color: Theme.of(context).colorScheme.error,
                             onPressed: () => {
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
-                                    title: Text('Confirmação'),
-                                    content: Text(
+                                    title: const Text('Confirmação'),
+                                    content: const Text(
                                         'Tem certeza de que deseja deletar?'),
                                     actions: <Widget>[
                                       TextButton(
-                                        child: Text('Cancelar'),
+                                        child: const Text('Cancelar'),
                                         onPressed: () {
                                           Navigator.of(context)
                                               .pop(); // Feche o diálogo

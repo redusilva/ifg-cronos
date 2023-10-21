@@ -9,7 +9,7 @@ class Transaction {
   final IconData icon;
 
 
-  Transaction({
+  const Transaction({
     required this.id,
     required this.value,
     required this.title,

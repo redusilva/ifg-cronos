@@ -19,9 +19,9 @@ class Alerta {
           actions: <Widget>[
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: Colors.green[700],
+                backgroundColor: Colors.green[700],
               ),
-              child: Text('Fechar'),
+              child: const Text('Fechar'),
               onPressed: () {
                 Navigator.of(context).pop(); // Fecha o alerta
               },

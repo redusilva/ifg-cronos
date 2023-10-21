@@ -36,7 +36,7 @@ class ChartBar extends StatelessWidget {
                     "TOTAL:  " +
                         NumberFormat('0.0 ').format(tamanhoTotal) +
                         labelTotal!,
-                    style: Theme.of(context).textTheme.headline6!.copyWith(
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           fontSize: 16, // Tamanho da fonte personalizado
                           color: Colors.green[700],
                         )),
@@ -71,7 +71,7 @@ class ChartBar extends StatelessWidget {
                 ],
               ),
             ),
-           SizedBox(height: constraints.maxHeight*0.05),
+           SizedBox(height: constraints.maxHeight*0.07),
             Container(
               height: constraints.maxHeight*0.15,
               child: Row(

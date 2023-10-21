@@ -4,14 +4,14 @@ import 'adaptative_text_field.dart';
 
 class FormularioLogin extends StatefulWidget {
   final void Function(String, String, BuildContext) onSubmit;
-  BuildContext _context;
+  final BuildContext _context;
   FormularioLogin(this.onSubmit, this._context, {Key? key}) : super(key: key) {}
 
   @override
-  State<FormularioLogin> createState() => _formularioLoginState();
+  State<FormularioLogin> createState() => _FormularioLoginState();
 }
 
-class _formularioLoginState extends State<FormularioLogin> {
+class _FormularioLoginState extends State<FormularioLogin> {
   final _emailontroller = TextEditingController();
   final _senhaController = TextEditingController();
 
@@ -34,7 +34,7 @@ class _formularioLoginState extends State<FormularioLogin> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Fazer Login', // Título
+            const Text('Fazer Login', // Título
                 style: TextStyle(
                   color: Colors.green,
                   fontSize: 20, // Tamanho da fonte do título

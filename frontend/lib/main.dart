@@ -1,3 +1,4 @@
+import 'package:expenses/components/adaptative_button.dart';
 import "package:expenses/components/formulárioCadastro.dart";
 import "package:expenses/conexãoComBack/conexãoComBack.dart";
 import 'package:flutter/material.dart';
@@ -5,7 +6,10 @@ import 'package:flutter/Services.dart';
 import 'components/telaDeArquivos.dart';
 import 'package:expenses/components/formulárioLogin.dart';
 import 'package:expenses/components/Alerta.dart';
+import 'package:expenses/components/planos_DropDown.dart';
 import "dart:convert";
+import 'package:flutter/cupertino.dart';
+import 'dart:io';
 
 main() => runApp(ExpensesApp());
 
@@ -24,13 +28,13 @@ class ExpensesApp extends StatelessWidget {
           secondary: Colors.green,
         ),
         textTheme: tema.textTheme.copyWith(
-          headline6: const TextStyle(
+          titleLarge: const TextStyle(
             fontFamily: 'OpenSans',
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
-          button: const TextStyle(
+          labelLarge: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -73,14 +77,15 @@ _abrirCadastro(BuildContext context) async {
     context: context,
     isDismissible: false,
     builder: (_) {
-      return FormularioCadastro(_dadosCadastro, mapPlanos, context);
+      return FormularioCadastro(
+          _dadosCadastro, mapPlanos, context, Dropdown(mapPlanos));
     },
   );
 }
 
 _dadosCadastro(
     String email, String senha, String idPlano, BuildContext context) async {
-  print(email + " " + senha + " " + idPlano);
+  //print(email + " " + senha + " " + idPlano);
   dynamic b = await criaConta(email, senha, idPlano);
 
   if (b.statusCode != 201) {
@@ -91,24 +96,40 @@ _dadosCadastro(
     Alerta(context, "Erro ao criar conta!", b.body.toString());
     return;
   }
-  Alerta(context, "Sucesso!", "Sua conta foi criada!");
-  return;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text("Sucesso!"),
+        content: const Text("Sua conta foi criada!"),
+        actions: <Widget>[
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[700],
+            ),
+            child: const Text('Fechar'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
 _dadosLogin(String email, String senha, BuildContext context) async {
   dynamic resposta = await login(email, senha);
   if (resposta.body[0] == '{') {
     dynamic decode = json.decode(resposta.body);
+    print(resposta.body);
     if (decode["usuarioLogado"] == true) {
-      Alerta(context, "Sucesso!", decode["mensagem"]);
-      Navigator.of(context).pop();
-
-      // Redirecionar para Tela2
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => TelaDeArquivos()),
-      );
-
+        MaterialPageRoute(builder: (context) => TelaDeArquivos(decode['token'])),
+      ).then((value) => {Navigator.of(context).pop()});
       return;
     }
     Alerta(context, "Atenção!", decode["mensagem"]);
@@ -125,6 +146,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  _abriModal(int index) async {
+    switch (index) {
+      case 1:
+        await _abrirCadastro(context);
+
+        break;
+      default:
+        await _abrirLogin(context);
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -136,66 +169,94 @@ class _MyHomePageState extends State<MyHomePage> {
           fontSize: 26 * MediaQuery.of(context).textScaleFactor,
         ),
       ),
-      actions: [],
     );
-    final avaliableHeigh = MediaQuery.of(context).size.height -
-        appBar.preferredSize.height -
-        MediaQuery.of(context).padding.top;
-    return Scaffold(
-      appBar: appBar,
-      body: Center(
+    appBar.preferredSize.height - MediaQuery.of(context).padding.top;
+    final page = SafeArea(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'Bem-vindo ao CRONOS',
-              style: TextStyle(
-                  fontSize: 30.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold),
+            const Center(
+              child: Text(
+                'Bem vindo ao CRONOS!',
+                style: TextStyle(
+                    fontSize: 30.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
-            Text(
+            const Text(
               'Seu repositório online atemporal!',
               style: TextStyle(
                   fontSize: 25.0, color: Color.fromARGB(255, 68, 67, 67)),
             ),
-            SizedBox(height: 60.0),
+            const SizedBox(height: 60.0),
             // Espaçamento entre o título e os botões
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                ElevatedButton(
-                  onPressed: () {
-                    _abrirCadastro(context);
-                    // Adicione aqui a ação a ser executada quando o botão "Login" for pressionado.
-                  },
-                  child: Text('Cadastrar'),
-                ),
-                SizedBox(height: 35.0), // Espaçamento entre os botões
-                ElevatedButton(
-                  onPressed: () {
-                    _abrirLogin(context);
-
-                    //  Navigator.of(context).push(
-                    //  MaterialPageRoute(
-                    //    builder: (context) => TelaDeArquivos(),
-                    //   ),
-                    // );
-                    // Adicione aqui a ação a ser executada quando o botão "Nova Conta" for pressionado.
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        Colors.amber), // Define a cor do botão
-                  ),
-                  child: Text('Login'),
-                ),
+                AdaptativeButton("Cadastrar", Colors.green,
+                    () async => await _abrirCadastro(context)),
+                const SizedBox(height: 35.0), // Espaçamento entre os botões
+                AdaptativeButton("Login", Colors.amber,
+                    () async => await _abrirLogin(context))
               ],
             ),
           ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
-    ;
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+            navigationBar: CupertinoNavigationBar(
+              middle: appBar,
+            ),
+            child: page,
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: const SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Center(
+                      child: Text(
+                        'Bem vindo ao CRONOS!',
+                        style: TextStyle(
+                            fontSize: 30.0,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Text(
+                      'Seu repositório online atemporal!',
+                      style: TextStyle(
+                          fontSize: 25.0,
+                          color: Color.fromARGB(255, 68, 67, 67)),
+                    ),
+                    SizedBox(height: 60.0),
+                    // Espaçamento entre o título e os botões
+                  ],
+                ),
+              ),
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              onTap: _abriModal,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              unselectedItemColor: Colors.white,
+              selectedItemColor: Colors.white,
+              currentIndex: 0,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.login),
+                  label: 'Login',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.create),
+                  label: 'Cadastrar',
+                ),
+              ],
+            ));
   }
 }

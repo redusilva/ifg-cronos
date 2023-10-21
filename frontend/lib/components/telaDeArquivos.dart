@@ -1,9 +1,10 @@
+import 'package:expenses/components/Alerta.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:io';
-
 import 'package:flutter/Services.dart';
+import 'package:expenses/conexãoComBack/conexãoComBack.dart';
 import 'package:expenses/components/transaction_list.dart';
 import 'package:expenses/components/chart.dart';
 import 'package:expenses/models/transaction.dart';
@@ -12,18 +13,25 @@ import 'package:file_picker/file_picker.dart';
 //main() => runApp(ExpensesApp());
 
 class TelaDeArquivos extends StatelessWidget {
-  TelaDeArquivos({Key? key}) : super(key: key);
+  final String _tokenLogin;
+
+  TelaDeArquivos(this._tokenLogin, {Key? key}) : super(key: key);
   final ThemeData tema = ThemeData();
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    return const MyHomePage();
+    return MyHomePage(_tokenLogin);
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  final String _tokenLogin;
+  const MyHomePage(this._tokenLogin, {Key? key}) : super(key: key);
+
+  String getTokenLogin() {
+    return _tokenLogin;
+  }
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -80,6 +88,10 @@ class _MyHomePageState extends State<MyHomePage> {
       // Faça algo com os arquivos selecionados, como exibir seus caminhos.
       for (var file in files) {
         dynamic tamanhoDoArquivo = await file.length() + 0.0;
+        bool sucesso = await uploadFile(widget.getTokenLogin(),file);
+        
+      
+
         return _addTransaction(
           file.uri.pathSegments.last,
           tamanhoDoArquivo,
@@ -101,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
           );
   }
 
+  final ThemeData tema = ThemeData();
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -113,60 +126,130 @@ class _MyHomePageState extends State<MyHomePage> {
           fontSize: 20 * MediaQuery.of(context).textScaleFactor,
         ),
       ),
-      actions: [],
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () => {Navigator.of(context).pop()},
+        )
+      ],
     );
     final avaliableHeigh = MediaQuery.of(context).size.height -
         appBar.preferredSize.height -
         MediaQuery.of(context).padding.top;
-    final bodyPage = SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text(
-                "Exibir armazenamento",
-                style: TextStyle(
-                    color: Colors.green[400], // Cor do texto
-                    fontSize: 15.0, // Tamanho da fonte
-                    fontWeight: FontWeight.bold, // Espessura da fonte (negrito)
+    final page = SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(
+                  "Exibir armazenamento",
+                  style: TextStyle(
+                      color: Colors.green[400], // Cor do texto
+                      fontSize: 15.0, // Tamanho da fonte
+                      fontWeight:
+                          FontWeight.bold, // Espessura da fonte (negrito)
 
-                    fontFamily: 'Roboto'), // Família da fonte
-              ),
-              Platform.isAndroid || Platform.isIOS || Platform.isWindows
-                  ? Switch.adaptive(
-                      value: _showChart,
-                      onChanged: (value) {
-                        setState(() {
-                          _showChart = value;
-                        });
-                      })
-                  : SizedBox(width: 10, height: 10)
-            ],
-          ),
-          // Planos_DropDown(context),
-          _showChart
-              ? Container(
-                  height: avaliableHeigh * (isLandScape ? 0.3 : 0.7),
-                  child: Chart(_transactions))
-              : SizedBox(height: avaliableHeigh * 0.03),
-          Container(
-              height: avaliableHeigh * 0.7,
-              child: TransactionList(_transactions, _removeTransaction)),
-        ],
+                      fontFamily: 'Roboto'), // Família da fonte
+                ),
+                Platform.isAndroid || Platform.isIOS || Platform.isWindows
+                    ? Switch.adaptive(
+                        value: _showChart,
+                        onChanged: (value) {
+                          setState(() {
+                            _showChart = value;
+                          });
+                        })
+                    : const SizedBox(width: 10, height: 10)
+              ],
+            ),
+            // Planos_DropDown(context),
+            SizedBox(
+              height: avaliableHeigh * 0.03,
+            ),
+            _showChart
+                ? Container(
+                    height: avaliableHeigh * (isLandScape ? 0.3 : 0.7),
+                    child: Chart(_transactions))
+                : SizedBox(
+                    height: avaliableHeigh * 0.03,
+                  ),
+            Container(
+                height: avaliableHeigh * 0.7,
+                child: TransactionList(_transactions, _removeTransaction)),
+          ],
+        ),
       ),
     );
-    final page = SafeArea(child: bodyPage);
     return Platform.isIOS
-        ? CupertinoPageScaffold(child: page)
-        : Scaffold(
-            appBar: appBar,
-            body: page,
-            floatingActionButton: _getIconButtom(
+        ? MaterialApp(
+            home: CupertinoPageScaffold(
+              navigationBar: CupertinoNavigationBar(
+                middle: appBar,
+              ),
+              child: page,
+            ),
+            theme: tema.copyWith(
+              colorScheme: tema.colorScheme.copyWith(
+                primary: Colors.green,
+                secondary: Colors.green,
+              ),
+              textTheme: tema.textTheme.copyWith(
+                titleLarge: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                labelLarge: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              appBarTheme: const AppBarTheme(
+                titleTextStyle: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ))
+        : MaterialApp(
+            home: Scaffold(
+              appBar: appBar,
+              body: page,
+              floatingActionButton: _getIconButtom(
                 Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
-                _abreNavegadorDeArquivos),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
-          );
+                _abreNavegadorDeArquivos,
+              ),
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.centerFloat,
+            ),
+            theme: tema.copyWith(
+              colorScheme: tema.colorScheme.copyWith(
+                primary: Colors.green,
+                secondary: Colors.green,
+              ),
+              textTheme: tema.textTheme.copyWith(
+                titleLarge: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                labelLarge: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              appBarTheme: const AppBarTheme(
+                titleTextStyle: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ));
   }
 }

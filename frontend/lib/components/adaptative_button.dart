@@ -32,7 +32,8 @@ class AdaptativeButton extends StatelessWidget {
               label,
             ),
             style: ElevatedButton.styleFrom(
-              primary: color, // Defina a cor de fundo do botão aqui
+              backgroundColor: color, 
+              // Defina a cor de fundo do botão aqui
             ),
             onPressed: onPressed,
           );

@@ -32,7 +32,7 @@ class AdaptativeTextField extends StatelessWidget {
                 horizontal: 6,
                 vertical: 12,
               ),
-              style: TextStyle(
+              style: const TextStyle(
                // color: Colors.green, // Defina a cor do texto
               ),
             ),
@@ -43,16 +43,16 @@ class AdaptativeTextField extends StatelessWidget {
             onSubmitted: onSubmitted,
             decoration: InputDecoration(
               labelText: label,
-              labelStyle: TextStyle(
+              labelStyle: const TextStyle(
                 color: Colors.green, // Defina a cor do texto do rótulo
               ),
-              enabledBorder: UnderlineInputBorder(
+              enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(
                   color: Colors.green, // Defina a cor da linha inferior
                 ),
               ),
             ),
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black, // Defina a cor do texto do campo
             ),
           );

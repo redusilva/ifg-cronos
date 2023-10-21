@@ -6,11 +6,11 @@ import 'adaptative_text_field.dart';
 class FormularioCadastro extends StatefulWidget {
   final void Function(String, String, String, BuildContext) onSubmit;
   final Map<String, String> planos;
-  Dropdown? _dropdown;
-  BuildContext _context;
-  FormularioCadastro(this.onSubmit, this.planos, this._context, {Key? key})
+  final Dropdown? _dropdown;
+  final BuildContext _context;
+  FormularioCadastro(this.onSubmit, this.planos, this._context,this._dropdown, {Key? key})
       : super(key: key) {
-    _dropdown = Dropdown(planos);
+  
   }
 
   @override
@@ -25,7 +25,7 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
   _submitForm() {
     final email = _emailontroller.text;
     final senha = (_senhaController.text);
-    _idPlano = widget._dropdown!.selectedvalue!;
+    _idPlano = widget._dropdown!.getValue();
     if (email.isEmpty || senha == "" || _idPlano == "") {
       return;
     }
@@ -42,7 +42,7 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Cadastrar nova conta', // Título
+            const Text('Cadastrar nova conta', // Título
                 style: TextStyle(
                   color: Colors.green,
                   fontSize: 20, // Tamanho da fonte do título
@@ -62,8 +62,7 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                AdaptativeButton(
-                    "Criar Conta", Colors.green, _submitForm),
+                AdaptativeButton("Criar Conta", Colors.green, _submitForm),
                 AdaptativeButton(
                     "Cancelar", Colors.red, () => Navigator.of(context).pop()),
               ],
