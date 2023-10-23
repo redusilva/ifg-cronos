@@ -124,11 +124,13 @@ _dadosLogin(String email, String senha, BuildContext context) async {
   dynamic resposta = await login(email, senha);
   if (resposta.body[0] == '{') {
     dynamic decode = json.decode(resposta.body);
-    print(resposta.body);
     if (decode["usuarioLogado"] == true) {
+      dynamic listaArquivos= await pegaArquivos(decode['token'], decode['idUsuario']);
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => TelaDeArquivos(decode['token'])),
+        MaterialPageRoute(
+            builder: (context) =>
+                TelaDeArquivos(decode['token'], decode['idUsuario'],listaArquivos)),
       ).then((value) => {Navigator.of(context).pop()});
       return;
     }
@@ -150,7 +152,6 @@ class _MyHomePageState extends State<MyHomePage> {
     switch (index) {
       case 1:
         await _abrirCadastro(context);
-
         break;
       default:
         await _abrirLogin(context);

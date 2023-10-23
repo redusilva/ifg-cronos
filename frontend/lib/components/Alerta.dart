@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Alerta {
-  
   Alerta(BuildContext context, String textoMaior, String textoMenor) {
     _mostrarAlerta(context, textoMaior, textoMenor);
   }
 
   void _mostrarAlerta(
-     
       BuildContext context, String textoMaior, String textoMenor) {
     showDialog(
       
@@ -33,5 +31,6 @@ class Alerta {
         );
       },
     );
+    
   }
 }

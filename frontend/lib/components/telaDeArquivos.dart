@@ -14,23 +14,43 @@ import 'package:file_picker/file_picker.dart';
 
 class TelaDeArquivos extends StatelessWidget {
   final String _tokenLogin;
+  final String _idUsuario;
+  final List<dynamic> _listaArquivos;
 
-  TelaDeArquivos(this._tokenLogin, {Key? key}) : super(key: key);
+  TelaDeArquivos(this._tokenLogin, this._idUsuario, this._listaArquivos,
+      {Key? key})
+      : super(key: key);
   final ThemeData tema = ThemeData();
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    return MyHomePage(_tokenLogin);
+    return MyHomePage(_tokenLogin, _idUsuario, _listaArquivos);
   }
 }
 
 class MyHomePage extends StatefulWidget {
   final String _tokenLogin;
-  const MyHomePage(this._tokenLogin, {Key? key}) : super(key: key);
+  final String _idUsuario;
+  List<dynamic> _listaArquivos;
+
+  MyHomePage(this._tokenLogin, this._idUsuario, this._listaArquivos, {Key? key})
+      : super(key: key);
+
+  List<dynamic> getListaArquivos() {
+    return _listaArquivos;
+  }
+
+  void setListaArquivos(List<dynamic> lA) {
+    _listaArquivos = lA;
+  }
 
   String getTokenLogin() {
     return _tokenLogin;
+  }
+
+  String getIdUsuario() {
+    return _idUsuario;
   }
 
   @override
@@ -39,11 +59,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool _showChart = true;
-  final List<Transaction> _transactions = [];
+  List<Transaction> _transactions = [];
 
-  _addTransaction(String title, double value, DateTime date, IconData icon) {
+  void _resetTransations() {
+    _transactions = [];
+  }
+
+  _addTransaction(String idExterno, String title, double value, DateTime date,
+      IconData icon) {
     final newTransaction = Transaction(
       id: Random().nextDouble().toString(),
+      idExterno: idExterno,
       title: title,
       value: value,
       date: date,
@@ -70,6 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'png': Icons.image,
     'mp3': Icons.music_note,
     'mp4': Icons.video_call,
+
     // Adicione mais extensões e ícones conforme necessário
   };
   IconData _getFileIcon(String fileName) {
@@ -88,16 +115,17 @@ class _MyHomePageState extends State<MyHomePage> {
       // Faça algo com os arquivos selecionados, como exibir seus caminhos.
       for (var file in files) {
         dynamic tamanhoDoArquivo = await file.length() + 0.0;
-        bool sucesso = await uploadFile(widget.getTokenLogin(),file);
-        
-      
-
-        return _addTransaction(
-          file.uri.pathSegments.last,
-          tamanhoDoArquivo,
-          DateTime.now(),
-          _getFileIcon(file.uri.pathSegments.last),
-        );
+        bool enviou = await uploadFile(
+            widget.getTokenLogin(), widget.getIdUsuario(), file);
+        if (enviou) {
+          widget.setListaArquivos(await pegaArquivos(
+              widget.getTokenLogin(), widget.getIdUsuario()));
+           setState(() { _resetTransations();});   
+          Alerta(context, "Sucesso!", "O arquivo foi enviado!");
+          return;
+        }
+        Alerta(context, "Erro ao enviar o arquivo! ",
+            "Verifique sua conexão com a internet");
       }
     } else {
       // O usuário cancelou a seleção de arquivos.
@@ -117,6 +145,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+    _resetTransations();
+
+    for (dynamic i in widget.getListaArquivos()) {
+      _addTransaction(
+          i['_id'],
+          i['nomeArquivo'],
+          i['tamanhoArquivo'] + 0.0,
+          DateTime.parse(i['dataModificacao']),
+          _getFileIcon(i['nomeArquivo'].split('.').last));
+    }
+
     bool isLandScape =
         (MediaQuery.of(context).orientation == Orientation.landscape);
     final appBar = AppBar(
@@ -164,7 +204,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     : const SizedBox(width: 10, height: 10)
               ],
             ),
-            // Planos_DropDown(context),
             SizedBox(
               height: avaliableHeigh * 0.03,
             ),
