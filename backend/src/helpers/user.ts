@@ -177,6 +177,33 @@ const validaSessaoUsuario = async (token: string) => {
     }
 }
 
+const adicionarEspacoUtilizado = async (usuario: any, tamanhoNovosArquivos: number) => {
+    try {
+        const filtro = { _id: new ObjectId(usuario?._id) };
+        const dadosAtualizados = {
+            $set: {
+                ultimoLogin: new Date(),
+                armazenamentoUsado: usuario?.armazenamentoUsado + tamanhoNovosArquivos
+            }
+        };
+
+        const atualizaSessao = await collection.updateOne(filtro, dadosAtualizados);
+
+        return true;
+    } catch (error: any) {
+        throw new Error('Erro ao tentar fazer o login do usuário: ' + error.message);
+    }
+}
+
+const atualizarEspacoUtilizadoCliente = async (idUsuario: string, query: any) => {
+    try {
+        const filtro = { _id: new ObjectId(idUsuario) };
+        await collection.updateOne(filtro, query);
+    } catch (error: any) {
+        throw new Error('Erro ao tentar fazer o login do usuário: ' + error.message);
+    }
+}
+
 export {
     verificaSeUsuarioExiste,
     criptografaSenha,
@@ -185,5 +212,7 @@ export {
     validaDadosUsuario,
     logaUsuario,
     buscaUsuarioPorId,
-    validaSessaoUsuario
+    validaSessaoUsuario,
+    adicionarEspacoUtilizado,
+    atualizarEspacoUtilizadoCliente
 }

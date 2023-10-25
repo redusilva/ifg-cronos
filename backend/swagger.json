@@ -141,7 +141,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "idUsuario": {
+                  "idCliente": {
                     "type": "string"
                   },
                   "file": {
@@ -188,6 +188,40 @@
         "responses": {
           "200": {
             "description": "Arquivos listados com sucesso!"
+          },
+          "500": {
+            "description": "Erro interno no servidor!"
+          }
+        }
+      },
+      "delete": {
+        "description": "Nessa rota será possível excluir arquivos armazenados no sistema!",
+        "summary": "",
+        "tags": [
+          "Files"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do arquivo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo excluído com sucesso!"
+          },
+          "400": {
+            "description": "Dados incompletos"
           },
           "500": {
             "description": "Erro interno no servidor!"

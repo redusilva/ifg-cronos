@@ -5,7 +5,9 @@ import { FileController } from '../controllers/FileController';
 const router = express.Router();
 
 // Rota para upload de arquivos
-router.post('/', middleware, FileController.uploadFile);
+router.post('/', middleware, FileController.enviarArquivo);
+
+router.delete('/:id', middleware, FileController.excluirArquivos);
 
 router.get('/:id', middleware, FileController.arquivosCliente);
 
