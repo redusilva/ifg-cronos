@@ -3,7 +3,7 @@ import fs from "fs";
 import { ObjectId } from "mongodb";
 import path from "path";
 import { buscaTodosPlanos } from "./planos";
-import { atualizarEspacoUtilizadoCliente, buscaUsuarioPorId } from "./user";
+import { atualizarEspacoUtilizadoCliente, buscaArmazenamentoCliente, buscaUsuarioPorId } from "./user";
 
 const database = client.db('cronos');
 const collection = database.collection('arquivos');
@@ -28,7 +28,13 @@ export const buscaArquivosPorIdCliente = async (idCliente: string) => {
     try {
         const consulta = { idUsuario: idCliente };
         const resultado = await collection.find(consulta, { projection: { idUsuario: 0 } }).toArray();
-        return resultado;
+        const armazenamentoCliente = await buscaArmazenamentoCliente(idCliente);
+
+        return {
+            ...armazenamentoCliente,
+            arquivos: resultado
+        };
+        
     } catch (error) {
         console.log(error);
         throw new Error('Erro ao buscar arquivos.');
@@ -49,7 +55,7 @@ export const buscaArquivoPorId = async (idArquivo: string) => {
 export const deletarArquivoNoBanco = async (arquivo: any) => {
     try {
         const consulta = { _id: new ObjectId(arquivo._id.toString()) };
-        const resultado = await collection.deleteOne(consulta);
+        const deletaArquivo = await collection.deleteOne(consulta);
         const usuario: any = await buscaUsuarioPorId(arquivo.idUsuario);
         const dadosAtualizados = {
             $set: {
@@ -60,8 +66,8 @@ export const deletarArquivoNoBanco = async (arquivo: any) => {
         console.log(usuario);
         console.log(arquivo);
 
-        await atualizarEspacoUtilizadoCliente(usuario._id.toString(), dadosAtualizados);
-        return resultado;
+        const res = await atualizarEspacoUtilizadoCliente(usuario._id.toString(), dadosAtualizados);
+        return res;
     } catch (error) {
         console.log(error);
         throw new Error('Erro ao deletar arquivo.');

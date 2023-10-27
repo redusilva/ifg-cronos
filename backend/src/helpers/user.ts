@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { ObjectId } from 'mongodb';
+import { buscaTodosPlanos } from './planos';
 
 dotenv.config();
 
@@ -177,30 +178,29 @@ const validaSessaoUsuario = async (token: string) => {
     }
 }
 
-const adicionarEspacoUtilizado = async (usuario: any, tamanhoNovosArquivos: number) => {
+const atualizarEspacoUtilizadoCliente = async (idUsuario: string, query: any) => {
     try {
-        const filtro = { _id: new ObjectId(usuario?._id) };
-        const dadosAtualizados = {
-            $set: {
-                ultimoLogin: new Date(),
-                armazenamentoUsado: usuario?.armazenamentoUsado + tamanhoNovosArquivos
-            }
-        };
+        const filtro = { _id: new ObjectId(idUsuario) };
+        await collection.updateOne(filtro, query);
+        
+        const armazenamento = await buscaArmazenamentoCliente(idUsuario);
+        return armazenamento;
 
-        const atualizaSessao = await collection.updateOne(filtro, dadosAtualizados);
-
-        return true;
     } catch (error: any) {
         throw new Error('Erro ao tentar fazer o login do usuário: ' + error.message);
     }
 }
 
-const atualizarEspacoUtilizadoCliente = async (idUsuario: string, query: any) => {
-    try {
-        const filtro = { _id: new ObjectId(idUsuario) };
-        await collection.updateOne(filtro, query);
-    } catch (error: any) {
-        throw new Error('Erro ao tentar fazer o login do usuário: ' + error.message);
+const buscaArmazenamentoCliente = async (idUsuario: string) => {
+    const usuario: any = await buscaUsuarioPorId(idUsuario);
+    const todosPlanos = await buscaTodosPlanos();
+    const planoUsuario = todosPlanos.filter((plano: any) => {
+        return usuario.idPlano === plano._id.toString();
+    });
+
+    return {
+        armazenamentoUsado: usuario.armazenamentoUsado,
+        espacoTotal: planoUsuario[0].size
     }
 }
 
@@ -213,6 +213,6 @@ export {
     logaUsuario,
     buscaUsuarioPorId,
     validaSessaoUsuario,
-    adicionarEspacoUtilizado,
-    atualizarEspacoUtilizadoCliente
+    atualizarEspacoUtilizadoCliente,
+    buscaArmazenamentoCliente
 }

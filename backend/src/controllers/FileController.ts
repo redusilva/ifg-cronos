@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import { adicionarEspacoUtilizado, buscaUsuarioPorId, validaSessaoUsuario } from '../helpers/user';
+import { atualizarEspacoUtilizadoCliente, buscaUsuarioPorId, validaSessaoUsuario } from '../helpers/user';
 import fs from 'fs';
 import path from 'path';
 import { buscaArquivoPorId, buscaArquivosPorIdCliente, deletarArquivoNoBanco, excluirArquivosSalvos, excluirArquivosTemporarios, salvaArquivos, validaSeUsuarioTemEspacoDisponivel } from '../helpers/files';
@@ -77,9 +77,20 @@ export class FileController {
                 tamanhoArquivos += arquivo.size;
             }));
 
-            await adicionarEspacoUtilizado(cliente, tamanhoArquivos);
+            const dadosAtualizados = {
+                $set: {
+                    ultimoLogin: new Date(),
+                    armazenamentoUsado: Number(cliente?.armazenamentoUsado) + Number(tamanhoArquivos)
+                }
+            };
 
-            return res.status(200).send('Arquivo recebido com sucesso.');
+            const atualizaEspaco = await atualizarEspacoUtilizadoCliente(cliente._id.toString(), dadosAtualizados);
+
+            return res.status(200).json({
+                ...atualizaEspaco,
+                mensagem: 'Arquivo(s) recebido(s) com sucesso.'
+            });
+
         } catch (error) {
             console.log(error);
             await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
@@ -106,7 +117,7 @@ export class FileController {
 
             const arquivos = await buscaArquivosPorIdCliente(idCliente);
 
-            return res.status(200).json({ arquivos });
+            return res.status(200).json({ ...arquivos });
         } catch (error) {
             console.log(error);
             return res.status(500).send('Erro ao processar arquivo.');
@@ -119,20 +130,17 @@ export class FileController {
             const token = String(req.headers.authorization).split('Bearer ')[1];
 
             if (!token) {
-                console.log(1)
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[] || []);
                 return res.status(401).json({ error: 'Usuário não autorizado!.' });
             }
 
             if (!await validaSessaoUsuario(token)) {
-                console.log(2)
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[] || []);
                 return res.status(401).json({ error: 'Sessão expirada! Faça login antes de prosseguir!' });
             }
 
             const idArquivo = req.params.id;
             if (!idArquivo) {
-                console.log(3)
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[] || []);
                 return res.status(400).send('Dados incompletos!');
             }
@@ -144,9 +152,13 @@ export class FileController {
                 return res.status(400).send('Arquivo não encontrado no sistema!');
             }
 
-            await deletarArquivoNoBanco(arquivo[0]);
+            const resultado = await deletarArquivoNoBanco(arquivo[0]);
             await excluirArquivosSalvos(arquivo[0]);
-            return res.status(200).send('Arquivo excluído com sucesso!');
+
+            return res.status(200).json({
+                ...resultado,
+                mensagem: 'Arquivo excluído com sucesso!'
+            });
 
         } catch (error: any) {
             console.log("Erro na controller excluirArquivosTemporarios", error);
