@@ -16,8 +16,10 @@ class TelaDeArquivos extends StatelessWidget {
   final String _tokenLogin;
   final String _idUsuario;
   final List<dynamic> _listaArquivos;
+  final double _espacoTotal;
 
-  TelaDeArquivos(this._tokenLogin, this._idUsuario, this._listaArquivos,
+  TelaDeArquivos(
+      this._tokenLogin, this._idUsuario, this._listaArquivos, this._espacoTotal,
       {Key? key})
       : super(key: key);
   final ThemeData tema = ThemeData();
@@ -25,7 +27,7 @@ class TelaDeArquivos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    return MyHomePage(_tokenLogin, _idUsuario, _listaArquivos);
+    return MyHomePage(_tokenLogin, _idUsuario, _listaArquivos, _espacoTotal);
   }
 }
 
@@ -33,12 +35,19 @@ class MyHomePage extends StatefulWidget {
   final String _tokenLogin;
   final String _idUsuario;
   List<dynamic> _listaArquivos;
+  final double _espacoTotal;
 
-  MyHomePage(this._tokenLogin, this._idUsuario, this._listaArquivos, {Key? key})
+  MyHomePage(
+      this._tokenLogin, this._idUsuario, this._listaArquivos, this._espacoTotal,
+      {Key? key})
       : super(key: key);
 
   List<dynamic> getListaArquivos() {
     return _listaArquivos;
+  }
+
+  double getEspacoTotal() {
+    return _espacoTotal;
   }
 
   void setListaArquivos(List<dynamic> lA) {
@@ -58,7 +67,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _showChart = true;
   List<Transaction> _transactions = [];
 
   void _resetTransations() {
@@ -81,9 +89,22 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  _removeTransaction(String id) {
+  _removeTransaction(String id) async {
+    dynamic resposta =
+        await pegaArquivos(widget.getTokenLogin(), widget.getIdUsuario());
+    widget.setListaArquivos(resposta['arquivos']);
     setState(() {
       _transactions.removeWhere((tr) => tr.id == id);
+      _resetTransations();
+
+      for (dynamic i in widget.getListaArquivos()) {
+        _addTransaction(
+            i['_id'],
+            i['nomeArquivo'],
+            i['tamanhoArquivo'] + 0.0,
+            DateTime.parse(i['dataModificacao']),
+            _getFileIcon(i['nomeArquivo'].split('.').last));
+      }
     });
   }
 
@@ -114,13 +135,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // Faça algo com os arquivos selecionados, como exibir seus caminhos.
       for (var file in files) {
-        dynamic tamanhoDoArquivo = await file.length() + 0.0;
         bool enviou = await uploadFile(
             widget.getTokenLogin(), widget.getIdUsuario(), file);
         if (enviou) {
-          widget.setListaArquivos(await pegaArquivos(
-              widget.getTokenLogin(), widget.getIdUsuario()));
-           setState(() { _resetTransations();});   
+          dynamic resposta =
+              await pegaArquivos(widget.getTokenLogin(), widget.getIdUsuario());
+          widget.setListaArquivos(resposta['arquivos']);
+          setState(() {
+            _resetTransations();
+          });
           Alerta(context, "Sucesso!", "O arquivo foi enviado!");
           return;
         }
@@ -144,6 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final ThemeData tema = ThemeData();
   @override
   Widget build(BuildContext context) {
+    print("a");
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     _resetTransations();
@@ -181,42 +205,13 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Text(
-                  "Exibir armazenamento",
-                  style: TextStyle(
-                      color: Colors.green[400], // Cor do texto
-                      fontSize: 15.0, // Tamanho da fonte
-                      fontWeight:
-                          FontWeight.bold, // Espessura da fonte (negrito)
-
-                      fontFamily: 'Roboto'), // Família da fonte
-                ),
-                Platform.isAndroid || Platform.isIOS || Platform.isWindows
-                    ? Switch.adaptive(
-                        value: _showChart,
-                        onChanged: (value) {
-                          setState(() {
-                            _showChart = value;
-                          });
-                        })
-                    : const SizedBox(width: 10, height: 10)
-              ],
-            ),
-            SizedBox(
-              height: avaliableHeigh * 0.03,
-            ),
-            _showChart
-                ? Container(
-                    height: avaliableHeigh * (isLandScape ? 0.3 : 0.7),
-                    child: Chart(_transactions))
-                : SizedBox(
-                    height: avaliableHeigh * 0.03,
-                  ),
+            Container(
+                height: avaliableHeigh * (isLandScape ? 0.3 : 0.3),
+                child: Chart(_transactions, widget.getEspacoTotal())),
             Container(
                 height: avaliableHeigh * 0.7,
-                child: TransactionList(_transactions, _removeTransaction)),
+                child: TransactionList(
+                    _transactions, widget.getTokenLogin(), _removeTransaction)),
           ],
         ),
       ),
@@ -265,6 +260,7 @@ class _MyHomePageState extends State<MyHomePage> {
               floatingActionButtonLocation:
                   FloatingActionButtonLocation.centerFloat,
             ),
+            debugShowCheckedModeBanner: false,
             theme: tema.copyWith(
               colorScheme: tema.colorScheme.copyWith(
                 primary: Colors.green,

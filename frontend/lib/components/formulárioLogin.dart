@@ -18,9 +18,7 @@ class _FormularioLoginState extends State<FormularioLogin> {
   _submitForm() {
     final email = _emailontroller.text;
     final senha = (_senhaController.text);
-    if (email.isEmpty || senha == "") {
-      return;
-    }
+   
 
     widget.onSubmit(email, senha, widget._context);
   }

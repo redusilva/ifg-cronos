@@ -26,9 +26,7 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
     final email = _emailontroller.text;
     final senha = (_senhaController.text);
     _idPlano = widget._dropdown!.getValue();
-    if (email.isEmpty || senha == "" || _idPlano == "") {
-      return;
-    }
+    
 
     widget.onSubmit(email, senha, _idPlano, widget._context);
   }

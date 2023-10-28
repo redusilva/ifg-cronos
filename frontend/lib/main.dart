@@ -19,9 +19,11 @@ class ExpensesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     return MaterialApp(
       home: const MyHomePage(),
+      debugShowCheckedModeBanner: false,
       theme: tema.copyWith(
         colorScheme: tema.colorScheme.copyWith(
           primary: Colors.green,
@@ -122,15 +124,19 @@ _dadosCadastro(
 
 _dadosLogin(String email, String senha, BuildContext context) async {
   dynamic resposta = await login(email, senha);
+  if(resposta==false){
+    Alerta(context, "Atenção!", "Não foi possível conectar com o servidor!");
+    return;
+  }
   if (resposta.body[0] == '{') {
     dynamic decode = json.decode(resposta.body);
     if (decode["usuarioLogado"] == true) {
-      dynamic listaArquivos= await pegaArquivos(decode['token'], decode['idUsuario']);
+      dynamic resposta= await pegaArquivos(decode['token'], decode['idUsuario']);
       Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) =>
-                TelaDeArquivos(decode['token'], decode['idUsuario'],listaArquivos)),
+                TelaDeArquivos(decode['token'], decode['idUsuario'],resposta['arquivos'],(resposta['espacoTotal'])+0.0)),
       ).then((value) => {Navigator.of(context).pop()});
       return;
     }
@@ -257,6 +263,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: Icon(Icons.create),
                   label: 'Cadastrar',
                 ),
+                
               ],
             ));
   }

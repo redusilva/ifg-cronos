@@ -33,9 +33,7 @@ class ChartBar extends StatelessWidget {
               height: 20,
               child: FittedBox(
                 child: Text(
-                    "TOTAL:  " +
-                        NumberFormat('0.0 ').format(tamanhoTotal) +
-                        labelTotal!,
+                    "Armazenamento:",
                     style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           fontSize: 16, // Tamanho da fonte personalizado
                           color: Colors.green[700],

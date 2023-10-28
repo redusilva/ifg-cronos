@@ -1,19 +1,23 @@
+import 'package:expenses/components/Alerta.dart';
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 import 'package:intl/intl.dart';
+import '../conexãoComBack/conexãoComBack.dart';
 
 class TransactionList extends StatelessWidget {
-  final List<Transaction> transactions;
-  final void Function(String) onRemove;
+  final List<Transaction> _transactions;
+  final void Function(String) _onRemove;
+  final String _tokenLogin;
 
-  const TransactionList(this.transactions, this.onRemove, {Key? key})
+  const TransactionList(this._transactions, this._tokenLogin, this._onRemove,
+      {Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.5,
-      child: transactions.isEmpty
+      child: _transactions.isEmpty
           ? LayoutBuilder(builder: (ctx, constraits) {
               return Column(
                 children: [
@@ -34,9 +38,9 @@ class TransactionList extends StatelessWidget {
               );
             })
           : ListView.builder(
-              itemCount: transactions.length,
+              itemCount: _transactions.length,
               itemBuilder: (ctx, index) {
-                final tr = transactions[index];
+                final tr = _transactions[index];
                 return Card(
                   elevation: 5,
                   margin: const EdgeInsets.symmetric(
@@ -73,7 +77,6 @@ class TransactionList extends StatelessWidget {
                           return Column(
                             children: [
                               SizedBox(height: constraits.maxHeight * 0.05),
-
                             ],
                           );
                         }),
@@ -94,8 +97,7 @@ class TransactionList extends StatelessWidget {
                                       TextButton(
                                         child: const Text('Cancelar'),
                                         onPressed: () {
-                                          Navigator.of(context)
-                                              .pop(); // Feche o diálogo
+                                          Navigator.of(context).pop();
                                         },
                                       ),
                                       TextButton(
@@ -104,11 +106,42 @@ class TransactionList extends StatelessWidget {
                                           style:
                                               TextStyle(color: Colors.red[900]),
                                         ),
-                                        onPressed: () {
-                                          onRemove(tr.id);
-                                          // ...
-                                          Navigator.of(context)
-                                              .pop(); // Feche o diálogo
+                                        onPressed: () async {
+                                          dynamic resposta =
+                                              await deletaArquivos(
+                                                  tr.idExterno, _tokenLogin);
+
+                                          if (resposta != null) {
+                                            Navigator.of(context).pop();
+                                              _onRemove(tr.id);
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title:
+                                                      const Text("Sucesso!!"),
+                                                  content: const Text(
+                                                      "Arquivo deletado com sucesso!!"),
+                                                  actions: <Widget>[
+                                                    ElevatedButton(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor:
+                                                            Colors.green[700],
+                                                      ),
+                                                      child:
+                                                          const Text('Fechar'),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
                                         },
                                       ),
                                     ],

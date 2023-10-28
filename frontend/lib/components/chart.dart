@@ -3,15 +3,16 @@ import '../models/transaction.dart';
 import 'chart_bar.dart';
 
 class Chart extends StatelessWidget {
-  final List<Transaction> transations;
+  final List<Transaction> _transations;
+  double _espacoTotal;
 
-  const Chart(this.transations, {Key? key}) : super(key: key);
+  Chart(this._transations, this._espacoTotal, {Key? key}) : super(key: key);
 
   List<Map<String, Object>> get groupedTransactions {
     return List.generate(1, (index) {
       double totalSum = 0.0;
-      for (var i = 0; i < transations.length; i++) {
-        totalSum += transations[i].value;
+      for (var i = 0; i < _transations.length; i++) {
+        totalSum += _transations[i].value;
       }
 
       return {
@@ -21,7 +22,7 @@ class Chart extends StatelessWidget {
   }
 
   double get _espacoDoPlano {
-    return 1000000000;
+    return _espacoTotal;
   }
 
   Map<String, dynamic> _formataMetrica(double tamanho) {
@@ -49,16 +50,17 @@ class Chart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 6,
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(10),
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: groupedTransactions.map((tr) {
             Map<String, dynamic> labelsUsado =
                 _formataMetrica(tr['value'] as double);
             Map<String, dynamic> labelsTotal = _formataMetrica(_espacoDoPlano);
-            Map<String, dynamic> labelDisponivel = _formataMetrica(_espacoDoPlano-(tr['value'] as double));
+            Map<String, dynamic> labelDisponivel =
+                _formataMetrica(_espacoDoPlano - (tr['value'] as double));
             return Flexible(
               fit: FlexFit.tight,
               child: ChartBar(

@@ -36,22 +36,28 @@ Future<dynamic> criaConta(
 
 Future<dynamic> login(final String email, final String senha) async {
   const String servidor = _hostName + "/user/login";
-  final response = await http.post(
-    Uri.parse(servidor),
-    body: {'email': email, "senha": senha},
-  );
-
-  return response;
+  dynamic response;
+  try {
+    response = await http.post(
+      Uri.parse(servidor),
+      body: {'email': email, "senha": senha},
+    );
+    //print(response.body);
+    return response;
+  } catch (e) {
+    return false;
+  }
 }
 
-Future<bool> uploadFile(String token, String idUsuario, File arquivo) async {
+Future<bool> uploadFile(
+    final String token, final String idCliente, final File arquivo) async {
   String apiUrl = _hostName + "/files";
 
   var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
 
   request.headers['Authorization'] = 'Bearer $token';
 
-  request.fields['idCliente'] = idUsuario;
+  request.fields['idCliente'] = idCliente;
 
   request.files.add(
     http.MultipartFile(
@@ -67,16 +73,16 @@ Future<bool> uploadFile(String token, String idUsuario, File arquivo) async {
 
   // Verifique o código de status da resposta
   if (response.statusCode == 200) {
-    print('Arquivo enviado com sucesso!');
     return true;
   } else {
     print('Erro ao enviar arquivo. Código de status: ${response.statusCode}');
+    ;
   }
 
   return false;
 }
 
-Future<dynamic> pegaArquivos(String token, String idCliente) async {
+Future<dynamic> pegaArquivos(final String token, final String idCliente) async {
   Map<String, String> headers = {
     'Authorization': 'Bearer $token',
   };
@@ -92,8 +98,33 @@ Future<dynamic> pegaArquivos(String token, String idCliente) async {
     } else {
       print('Falha : ${response.statusCode}');
     }
-    return json.decode(response.body)['arquivos'];
+
+    return json.decode(response.body);
   } catch (e) {
     print('Erro durante o upload: $e');
+  }
+}
+
+Future<dynamic> deletaArquivos(
+    final String idArquivo, final String token) async {
+  Map<String, String> headers = {
+    'Authorization': 'Bearer $token',
+  };
+  final String servidor = _hostName + "/files/" + idArquivo;
+  try {
+    final response = await http.delete(
+        Uri.parse(
+          servidor,
+        ),
+        headers: headers);
+    if (response.statusCode == 200) {
+      //  print('conexão bem-sucedida');
+    } else {
+      print('Falha : ${response.statusCode}');
+    }
+    //print(json.decode(response.body));
+    return json.decode(response.body);
+  } catch (e) {
+    print('Erro F: $e');
   }
 }

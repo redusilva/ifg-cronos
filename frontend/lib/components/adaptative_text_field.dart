@@ -37,10 +37,17 @@ class AdaptativeTextField extends StatelessWidget {
               ),
             ),
           )
-        : TextField(
+        : TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            onSubmitted: onSubmitted,
+            validator: (_text){
+              final String text=_text ?? '';
+              if(text.trim().isEmpty){
+                return""+label.toString()+" é um campo obrigatório"; 
+              }
+              return null;
+            },
+            onFieldSubmitted: onSubmitted,
             decoration: InputDecoration(
               labelText: label,
               labelStyle: const TextStyle(
