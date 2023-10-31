@@ -190,10 +190,46 @@ class _MyHomePageState extends State<MyHomePage> {
           fontSize: 20 * MediaQuery.of(context).textScaleFactor,
         ),
       ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back), // Modifique o ícone aqui
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Confirmação"),
+                content: const Text("Deseja sair?"),
+                actions: <Widget>[
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[700],
+                    ),
+                    child: const Text('Não'),
+                    onPressed: () {
+                      Navigator.of(context).pop(false); // Fecha o alerta
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[700],
+                    ),
+                    child: const Text('Sim'),
+                    onPressed: () {
+                      Navigator.of(context).pop(true); // Fecha o alerta
+                    },
+                  )
+                ],
+              );
+            },
+          ).then((value) => {
+                if (value) {Navigator.of(context).pop(true)}
+              });
+        },
+      ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () => {Navigator.of(context).pop()},
+          icon: const Icon(Icons.settings),
+          onPressed: () => {},
         )
       ],
     );
@@ -217,74 +253,21 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
     return Platform.isIOS
-        ? MaterialApp(
-            home: CupertinoPageScaffold(
-              navigationBar: CupertinoNavigationBar(
-                middle: appBar,
-              ),
-              child: page,
+        ? CupertinoPageScaffold(
+            navigationBar: CupertinoNavigationBar(
+              middle: appBar,
             ),
-            theme: tema.copyWith(
-              colorScheme: tema.colorScheme.copyWith(
-                primary: Colors.green,
-                secondary: Colors.green,
-              ),
-              textTheme: tema.textTheme.copyWith(
-                titleLarge: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                labelLarge: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              appBarTheme: const AppBarTheme(
-                titleTextStyle: TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ))
-        : MaterialApp(
-            home: Scaffold(
-              appBar: appBar,
-              body: page,
-              floatingActionButton: _getIconButtom(
-                Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
-                _abreNavegadorDeArquivos,
-              ),
-              floatingActionButtonLocation:
-                  FloatingActionButtonLocation.centerFloat,
+            child: page,
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: page,
+            floatingActionButton: _getIconButtom(
+              Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
+              _abreNavegadorDeArquivos,
             ),
-            debugShowCheckedModeBanner: false,
-            theme: tema.copyWith(
-              colorScheme: tema.colorScheme.copyWith(
-                primary: Colors.green,
-                secondary: Colors.green,
-              ),
-              textTheme: tema.textTheme.copyWith(
-                titleLarge: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                labelLarge: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              appBarTheme: const AppBarTheme(
-                titleTextStyle: TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ));
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+          );
   }
 }

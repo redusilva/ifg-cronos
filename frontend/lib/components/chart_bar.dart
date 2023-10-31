@@ -25,6 +25,14 @@ class ChartBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double porcentagem= (espacoUtilizado!/espacoTotal!)*100;
+    Color corDaBarra= Colors.green[700]!;
+    if(porcentagem>50){
+      corDaBarra= Colors.amber[700]!;
+    }
+    if(porcentagem>90){
+      corDaBarra= Colors.red[700]!;
+    }
     return LayoutBuilder(
       builder: (ctx, constraints) {
         return Column(
@@ -61,7 +69,7 @@ class ChartBar extends StatelessWidget {
                     widthFactor: espacoUtilizado! / espacoTotal!,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: corDaBarra,
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
