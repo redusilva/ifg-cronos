@@ -1,8 +1,9 @@
-import 'package:expenses/components/Alerta.dart';
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 import 'package:intl/intl.dart';
 import '../conexãoComBack/conexãoComBack.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class TransactionList extends StatelessWidget {
   final List<Transaction> _transactions;
@@ -50,7 +51,8 @@ class TransactionList extends StatelessWidget {
                   child: ListTile(
                     leading: Theme(
                       data: Theme.of(context), // Use o tema atual do contexto
-                      child: Icon(tr.icon, color: Colors.green),
+                      child: Icon(tr.icon,
+                          color: Provider.of<CustomProvider>(context).corTema),
                     ),
                     title: Text(
                       tr.title,
@@ -95,7 +97,12 @@ class TransactionList extends StatelessWidget {
                                         'Tem certeza de que deseja deletar?'),
                                     actions: <Widget>[
                                       TextButton(
-                                        child: const Text('Cancelar'),
+                                        child: Text('Cancelar',
+                                            style: TextStyle(
+                                                color:
+                                                    Provider.of<CustomProvider>(
+                                                            context)
+                                                        .corTema)),
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
@@ -113,7 +120,7 @@ class TransactionList extends StatelessWidget {
 
                                           if (resposta != null) {
                                             Navigator.of(context).pop();
-                                              _onRemove(tr.id);
+                                            _onRemove(tr.id);
                                             showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
@@ -126,15 +133,16 @@ class TransactionList extends StatelessWidget {
                                                     ElevatedButton(
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        backgroundColor:
-                                                            Colors.green[700],
+                                                        backgroundColor: Provider
+                                                                .of<CustomProvider>(
+                                                                    context)
+                                                            .corTema,
                                                       ),
                                                       child:
                                                           const Text('Fechar'),
                                                       onPressed: () {
                                                         Navigator.of(context)
                                                             .pop();
-                                                      
                                                       },
                                                     ),
                                                   ],

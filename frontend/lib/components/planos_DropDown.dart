@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class Dropdown extends StatefulWidget {
   final Map<String, String> planos;
@@ -36,10 +38,10 @@ class _DropdownState extends State<Dropdown> {
       // Para iOS, use o CupertinoPicker
       return Row(
         children: <Widget>[
-          const Text(
+          Text(
             "Plano:    ",
             style: TextStyle(
-              color: Colors.green,
+              color: Provider.of<CustomProvider>(context).corTema,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -60,10 +62,10 @@ class _DropdownState extends State<Dropdown> {
                     children: widget.planos.keys.map((String value) {
                       return Text(
                         value,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Provider.of<CustomProvider>(context).corTema,
+                            fontWeight: FontWeight.bold),
                       );
                     }).toList(),
                   );
@@ -72,9 +74,10 @@ class _DropdownState extends State<Dropdown> {
             },
             child: Text(
               selectedOption,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                color: Provider.of<CustomProvider>(context).corTema,
               ),
             ),
           ),
@@ -86,11 +89,13 @@ class _DropdownState extends State<Dropdown> {
         alignment: Alignment.centerLeft,
         child: Row(
           children: <Widget>[
-            const Text(
-              "Plano:    ",
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+            Center(
+              child: Text(
+                "Plano:    ",
+                style: TextStyle(
+                  color: Provider.of<CustomProvider>(context).corTema,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             DropdownButton<String>(
@@ -102,21 +107,22 @@ class _DropdownState extends State<Dropdown> {
                   setSelectedValue();
                 });
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_drop_down,
-                color: Colors.green,
+                color: Provider.of<CustomProvider>(context).corTema,
               ),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Colors.green,
+                color: Provider.of<CustomProvider>(context).corTema,
               ),
-              elevation: 1,
+              elevation: 2,
               underline: Container(
-                height: 1,
-                color: Colors
-                    .green, // Adicionar uma linha de separação personalizada
+                height: 2,
+                color: Provider.of<CustomProvider>(context)
+                    .corTema, // Adicionar uma linha de separação personalizada
               ),
-              dropdownColor: Colors.green[100], // Cor de fundo do dropdown
+              dropdownColor: Provider.of<CustomProvider>(context)
+                  .corTema, // Cor de fundo do dropdown
               items: widget.planos.keys
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
@@ -126,6 +132,7 @@ class _DropdownState extends State<Dropdown> {
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 );

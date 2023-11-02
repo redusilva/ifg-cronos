@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class Alerta {
   Alerta(BuildContext context, String textoMaior, String textoMenor) {
@@ -17,7 +19,8 @@ class Alerta {
           actions: <Widget>[
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
+                backgroundColor:  Provider.of<CustomProvider>(context)
+                    .corTema,
               ),
               child: const Text('Fechar'),
               onPressed: () {

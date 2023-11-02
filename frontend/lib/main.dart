@@ -1,17 +1,26 @@
-import 'package:expenses/components/adaptative_button.dart';
-import "package:expenses/components/formulárioCadastro.dart";
-import "package:expenses/conexãoComBack/conexãoComBack.dart";
+import 'components/adaptative_button.dart';
+import "components/formulárioCadastro.dart";
+import "conexãoComBack/conexãoComBack.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter/Services.dart';
 import 'components/telaDeArquivos.dart';
-import 'package:expenses/components/formulárioLogin.dart';
-import 'package:expenses/components/Alerta.dart';
-import 'package:expenses/components/planos_DropDown.dart';
+import 'components/formulárioLogin.dart';
+import 'components/Alerta.dart';
+import 'components/planos_DropDown.dart';
 import "dart:convert";
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
+import 'providers/customizationProvider.dart';
+import 'package:provider/provider.dart';
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CustomProvider(),
+      child: ExpensesApp(),
+    ),
+  );
+}
 
-main() => runApp(ExpensesApp());
 
 class ExpensesApp extends StatelessWidget {
   ExpensesApp({Key? key}) : super(key: key);
@@ -19,15 +28,14 @@ class ExpensesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     return MaterialApp(
       home: const MyHomePage(),
       debugShowCheckedModeBanner: false,
       theme: tema.copyWith(
         colorScheme: tema.colorScheme.copyWith(
-          primary: Colors.green,
-          secondary: Colors.green,
+          primary: Provider.of<CustomProvider>(context).corTema,
+          secondary: Provider.of<CustomProvider>(context).corTema,
         ),
         textTheme: tema.textTheme.copyWith(
           titleLarge: const TextStyle(
@@ -124,19 +132,23 @@ _dadosCadastro(
 
 _dadosLogin(String email, String senha, BuildContext context) async {
   dynamic resposta = await login(email, senha);
-  if(resposta==false){
+  if (resposta == false) {
     Alerta(context, "Atenção!", "Não foi possível conectar com o servidor!");
     return;
   }
   if (resposta.body[0] == '{') {
     dynamic decode = json.decode(resposta.body);
     if (decode["usuarioLogado"] == true) {
-      dynamic resposta= await pegaArquivos(decode['token'], decode['idUsuario']);
+      dynamic resposta =
+          await pegaArquivos(decode['token'], decode['idUsuario']);
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                TelaDeArquivos(decode['token'], decode['idUsuario'],resposta['arquivos'],(resposta['espacoTotal'])+0.0)),
+            builder: (context) => TelaDeArquivos(
+                decode['token'],
+                decode['idUsuario'],
+                resposta['arquivos'],
+                (resposta['espacoTotal']) + 0.0)),
       ).then((value) => {Navigator.of(context).pop()});
       return;
     }
@@ -205,7 +217,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 AdaptativeButton("Cadastrar", Colors.green,
                     () async => await _abrirCadastro(context)),
                 const SizedBox(height: 35.0), // Espaçamento entre os botões
-                AdaptativeButton("Login", Colors.amber,
+                AdaptativeButton(
+                    "Login",
+                    const Color.fromARGB(255, 209, 180, 95),
                     () async => await _abrirLogin(context))
               ],
             ),
@@ -263,7 +277,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: Icon(Icons.create),
                   label: 'Cadastrar',
                 ),
-                
               ],
             ));
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'adaptative_button.dart';
 import 'adaptative_text_field.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class FormularioLogin extends StatefulWidget {
   final void Function(String, String, BuildContext) onSubmit;
@@ -18,7 +20,6 @@ class _FormularioLoginState extends State<FormularioLogin> {
   _submitForm() {
     final email = _emailontroller.text;
     final senha = (_senhaController.text);
-   
 
     widget.onSubmit(email, senha, widget._context);
   }
@@ -32,9 +33,9 @@ class _FormularioLoginState extends State<FormularioLogin> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Fazer Login', // Título
+            Text('Fazer Login', // Título
                 style: TextStyle(
-                  color: Colors.green,
+                  color: Provider.of<CustomProvider>(context).corTema,
                   fontSize: 20, // Tamanho da fonte do título
                   fontWeight: FontWeight.bold, // Estilo de fonte em negrito
                 )),
@@ -51,9 +52,9 @@ class _FormularioLoginState extends State<FormularioLogin> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                AdaptativeButton("Entrar", Colors.green, _submitForm),
+                AdaptativeButton("Entrar", Provider.of<CustomProvider>(context).corTema, _submitForm),
                 AdaptativeButton(
-                    "Cancelar", Colors.red, () => Navigator.of(context).pop())
+                    "Cancelar", Colors.red[900], () => Navigator.of(context).pop())
               ],
             ),
           ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class ChartBar extends StatelessWidget {
   final double? tamanhoUtilizado;
@@ -26,12 +28,12 @@ class ChartBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double porcentagem= (espacoUtilizado!/espacoTotal!)*100;
-    Color corDaBarra= Colors.green[700]!;
+    Color corDaBarra= Colors.green[900]!;
     if(porcentagem>50){
-      corDaBarra= Colors.amber[700]!;
+      corDaBarra= Colors.amber[900]!;
     }
     if(porcentagem>90){
-      corDaBarra= Colors.red[700]!;
+      corDaBarra= Colors.red[900]!;
     }
     return LayoutBuilder(
       builder: (ctx, constraints) {
@@ -44,7 +46,8 @@ class ChartBar extends StatelessWidget {
                     "Armazenamento:",
                     style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           fontSize: 16, // Tamanho da fonte personalizado
-                          color: Colors.green[700],
+                          color:  Provider.of<CustomProvider>(context)
+                    .corTema,
                         )),
               ),
             ),

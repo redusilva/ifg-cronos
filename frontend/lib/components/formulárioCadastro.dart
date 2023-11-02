@@ -1,17 +1,18 @@
-import 'package:expenses/components/adaptative_button.dart';
+import 'adaptative_button.dart';
 import 'package:flutter/material.dart';
 import 'planos_DropDown.dart';
 import 'adaptative_text_field.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class FormularioCadastro extends StatefulWidget {
   final void Function(String, String, String, BuildContext) onSubmit;
   final Map<String, String> planos;
   final Dropdown? _dropdown;
   final BuildContext _context;
-  FormularioCadastro(this.onSubmit, this.planos, this._context,this._dropdown, {Key? key})
-      : super(key: key) {
-  
-  }
+  FormularioCadastro(this.onSubmit, this.planos, this._context, this._dropdown,
+      {Key? key})
+      : super(key: key) {}
 
   @override
   State<FormularioCadastro> createState() => _FormularioCadastroState();
@@ -26,7 +27,6 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
     final email = _emailontroller.text;
     final senha = (_senhaController.text);
     _idPlano = widget._dropdown!.getValue();
-    
 
     widget.onSubmit(email, senha, _idPlano, widget._context);
   }
@@ -40,9 +40,9 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Cadastrar nova conta', // Título
+            Text('Cadastrar nova conta', // Título
                 style: TextStyle(
-                  color: Colors.green,
+                  color: Provider.of<CustomProvider>(context).corTema,
                   fontSize: 20, // Tamanho da fonte do título
                   fontWeight: FontWeight.bold, // Estilo de fonte em negrito
                 )),
@@ -60,9 +60,10 @@ class _FormularioCadastroState extends State<FormularioCadastro> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                AdaptativeButton("Criar Conta", Colors.green, _submitForm),
+                AdaptativeButton("Criar Conta",  Provider.of<CustomProvider>(context)
+                    .corTema, _submitForm),
                 AdaptativeButton(
-                    "Cancelar", Colors.red, () => Navigator.of(context).pop()),
+                    "Cancelar", Colors.red[900], () => Navigator.of(context).pop()),
               ],
             ),
           ],

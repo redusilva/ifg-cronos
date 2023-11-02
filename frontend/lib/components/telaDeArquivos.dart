@@ -1,16 +1,19 @@
-import 'package:expenses/components/Alerta.dart';
+import 'Alerta.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/Services.dart';
-import 'package:expenses/conexãoComBack/conexãoComBack.dart';
-import 'package:expenses/components/transaction_list.dart';
-import 'package:expenses/components/chart.dart';
-import 'package:expenses/models/transaction.dart';
+import '../conexãoComBack/conexãoComBack.dart';
+import '../components/transaction_list.dart';
+import 'chart.dart';
+import '../models/transaction.dart';
 import 'package:file_picker/file_picker.dart';
+import 'menuCores.dart';
+import '../providers/customizationProvider.dart';
+import 'package:provider/provider.dart';
 
-//main() => runApp(ExpensesApp());
+
 
 class TelaDeArquivos extends StatelessWidget {
   final String _tokenLogin;
@@ -67,6 +70,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
   List<Transaction> _transactions = [];
 
   void _resetTransations() {
@@ -202,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 actions: <Widget>[
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
+                      backgroundColor: Provider.of<CustomProvider>(context).corTema,
                     ),
                     child: const Text('Não'),
                     onPressed: () {
@@ -222,15 +227,17 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             },
           ).then((value) => {
-                if (value) {Navigator.of(context).pop(true)}
+                if (value != null)
+                  {
+                    if (value) {Navigator.of(context).pop()}
+                  }
               });
         },
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () => {},
-        )
+            icon: const Icon(Icons.account_circle),
+            onPressed: () => {_scaffoldKey.currentState!.openEndDrawer()})
       ],
     );
     final avaliableHeigh = MediaQuery.of(context).size.height -
@@ -252,6 +259,48 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+    var drawer = Drawer(
+      child: ListView(
+        children: <Widget>[
+          UserAccountsDrawerHeader(
+            accountName: const Text("Usuário"),
+            accountEmail: Row(
+              children: [
+                const Text("usuario@exemplo.com"),
+                IconButton(
+                    icon: const Icon(
+                        Icons.edit), // Ícone que será exibido no botão
+                    onPressed: () => {})
+              ],
+            ),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Text(
+                "U",
+                style: TextStyle(fontSize: 40.0),
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              ListTile(
+                title: const Text('Item 1'),
+                onTap: () {
+                  // Ação quando o Item 1 é selecionado
+                },
+              ),
+              ListTile(
+                title: const Text('Item 2'),
+                onTap: () {
+                  // Ação quando o Item 2 é selecionado
+                },
+              ),
+              PopupMenuButtonWidget()
+            ],
+          )
+        ],
+      ),
+    );
     return Platform.isIOS
         ? CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
@@ -262,6 +311,8 @@ class _MyHomePageState extends State<MyHomePage> {
         : Scaffold(
             appBar: appBar,
             body: page,
+            key: _scaffoldKey,
+            endDrawer: drawer,
             floatingActionButton: _getIconButtom(
               Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
               _abreNavegadorDeArquivos,

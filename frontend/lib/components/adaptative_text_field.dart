@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/customizationProvider.dart';
 
 class AdaptativeTextField extends StatelessWidget {
   final String? label;
@@ -33,29 +35,31 @@ class AdaptativeTextField extends StatelessWidget {
                 vertical: 12,
               ),
               style: const TextStyle(
-               // color: Colors.green, // Defina a cor do texto
-              ),
+                  // color: Colors.green, // Defina a cor do texto
+                  ),
             ),
           )
         : TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            validator: (_text){
-              final String text=_text ?? '';
-              if(text.trim().isEmpty){
-                return""+label.toString()+" é um campo obrigatório"; 
+            validator: (_text) {
+              final String text = _text ?? '';
+              if (text.trim().isEmpty) {
+                return "" + label.toString() + " é um campo obrigatório";
               }
               return null;
             },
             onFieldSubmitted: onSubmitted,
             decoration: InputDecoration(
               labelText: label,
-              labelStyle: const TextStyle(
-                color: Colors.green, // Defina a cor do texto do rótulo
+              labelStyle: TextStyle(
+                color: Provider.of<CustomProvider>(context)
+                    .corTema, // Defina a cor do texto do rótulo
               ),
-              enabledBorder: const UnderlineInputBorder(
+              enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(
-                  color: Colors.green, // Defina a cor da linha inferior
+                  color: Provider.of<CustomProvider>(context)
+                      .corTema, // Defina a cor da linha inferior
                 ),
               ),
             ),
