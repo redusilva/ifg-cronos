@@ -12,7 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import "providers/UserProvider.dart";
 import 'providers/customizationProvider.dart';
-
+import 'providers/fileProvider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -26,6 +26,9 @@ void main() {
         ChangeNotifierProvider<EmailProvider>(
           create: (context) => EmailProvider(),
         ),
+        ChangeNotifierProvider<FileProvider>(
+          create: (context) => FileProvider(),
+        )
         // Adicione quantos provedores forem necessários
       ],
       child: ExpensesApp(),
@@ -40,34 +43,41 @@ class ExpensesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    return MaterialApp(
-      home: const MyHomePage(),
-      debugShowCheckedModeBanner: false,
-      theme: tema.copyWith(
-        colorScheme: tema.colorScheme.copyWith(
-          primary: Provider.of<CustomProvider>(context).corTema,
-          secondary: Provider.of<CustomProvider>(context).corTema,
-        ),
-        textTheme: tema.textTheme.copyWith(
-          titleLarge: const TextStyle(
-            fontFamily: 'OpenSans',
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+    return Builder(
+      builder: (context) =>
+          Consumer<CustomProvider>(builder: (context, provider, child) {
+        return MaterialApp(
+          home: const MyHomePage(),
+          debugShowCheckedModeBanner: false,
+          theme: tema.copyWith(
+            colorScheme: tema.colorScheme.copyWith(
+              primary:
+                  Provider.of<CustomProvider>(context).corTema,
+              secondary:
+                  Provider.of<CustomProvider>(context).corTema
+            ),
+            textTheme: tema.textTheme.copyWith(
+              titleLarge: const TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              labelLarge: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            appBarTheme: const AppBarTheme(
+              titleTextStyle: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          labelLarge: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        appBarTheme: const AppBarTheme(
-          titleTextStyle: TextStyle(
-            fontFamily: 'OpenSans',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }
@@ -150,9 +160,9 @@ _dadosLogin(String email, String senha, BuildContext context) async {
   if (resposta.body[0] == '{') {
     dynamic decode = json.decode(resposta.body);
     if (decode["usuarioLogado"] == true) {
-      dynamic resposta =
-          await pegaArquivos(decode['token'], decode['idUsuario']);
-    
+      resposta = await pegaArquivos(decode['token'], decode['idUsuario']);
+      print(resposta['arquivos']);
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -226,7 +236,9 @@ class _MyHomePageState extends State<MyHomePage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                AdaptativeButton("Cadastrar", Colors.green,
+                AdaptativeButton(
+                    "Cadastrar",
+                    Provider.of<CustomProvider>(context).corTema,
                     () async => await _abrirCadastro(context)),
                 const SizedBox(height: 35.0), // Espaçamento entre os botões
                 AdaptativeButton(

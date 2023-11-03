@@ -1,3 +1,4 @@
+import 'package:expenses/components/menuCores.dart';
 import 'package:expenses/providers/UserProvider.dart';
 
 import 'Alerta.dart';
@@ -11,67 +12,25 @@ import '../components/transaction_list.dart';
 import 'chart.dart';
 import '../models/transaction.dart';
 import 'package:file_picker/file_picker.dart';
-import 'menuCores.dart';
 import '../providers/customizationProvider.dart';
 import 'package:provider/provider.dart';
 
-class TelaDeArquivos extends StatelessWidget {
-  final String _tokenLogin;
-  final String _idUsuario;
-  final List<dynamic> _listaArquivos;
-  final double _espacoTotal;
+class TelaDeArquivos extends StatefulWidget {
+  String _tokenLogin;
+  String _idUsuario;
+  List<dynamic> _listaArquivos;
+  double _espacoTotal;
 
   TelaDeArquivos(
       this._tokenLogin, this._idUsuario, this._listaArquivos, this._espacoTotal,
       {Key? key})
       : super(key: key);
-  final ThemeData tema = ThemeData();
 
   @override
-  Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    return MyHomePage(_tokenLogin, _idUsuario, _listaArquivos, _espacoTotal);
-  }
+  State<TelaDeArquivos> createState() => _MyHomePageState();
 }
 
-class MyHomePage extends StatefulWidget {
-  final String _tokenLogin;
-  final String _idUsuario;
-  List<dynamic> _listaArquivos;
-  final double _espacoTotal;
-
-  MyHomePage(
-      this._tokenLogin, this._idUsuario, this._listaArquivos, this._espacoTotal,
-      {Key? key})
-      : super(key: key);
-
-  List<dynamic> getListaArquivos() {
-    return _listaArquivos;
-  }
-
-  double getEspacoTotal() {
-    return _espacoTotal;
-  }
-
-  void setListaArquivos(List<dynamic> lA) {
-    _listaArquivos = lA;
-  }
-
-  String getTokenLogin() {
-    return _tokenLogin;
-  }
-
-  String getIdUsuario() {
-    return _idUsuario;
-  }
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
-
+class _MyHomePageState extends State<TelaDeArquivos> {
   List<Transaction> _transactions = [];
 
   void _resetTransations() {
@@ -96,13 +55,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _removeTransaction(String id) async {
     dynamic resposta =
-        await pegaArquivos(widget.getTokenLogin(), widget.getIdUsuario());
-    widget.setListaArquivos(resposta['arquivos']);
+        await pegaArquivos(widget._tokenLogin, widget._idUsuario);
+    widget._listaArquivos = resposta['arquivos'];
     setState(() {
       _transactions.removeWhere((tr) => tr.id == id);
       _resetTransations();
 
-      for (dynamic i in widget.getListaArquivos()) {
+      for (dynamic i in widget._listaArquivos) {
         _addTransaction(
             i['_id'],
             i['nomeArquivo'],
@@ -140,15 +99,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // Faça algo com os arquivos selecionados, como exibir seus caminhos.
       for (var file in files) {
-        bool enviou = await uploadFile(
-            widget.getTokenLogin(), widget.getIdUsuario(), file);
+        bool enviou =
+            await uploadFile(widget._tokenLogin, widget._idUsuario, file);
         if (enviou) {
           dynamic resposta =
-              await pegaArquivos(widget.getTokenLogin(), widget.getIdUsuario());
-          widget.setListaArquivos(resposta['arquivos']);
+              await pegaArquivos(widget._tokenLogin, widget._idUsuario);
+          widget._listaArquivos = resposta["arquivos"];
           setState(() {
             _resetTransations();
           });
+          ;
           Alerta(context, "Sucesso!", "O arquivo foi enviado!");
           return;
         }
@@ -160,24 +120,42 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  _atualzaArquivos() async {
+    dynamic resposta =
+        await pegaArquivos(widget._tokenLogin, widget._idUsuario);
+    widget._listaArquivos = resposta["arquivos"];
+    setState(() {
+      _resetTransations();
+    });
+    for (dynamic i in widget._listaArquivos) {
+      _addTransaction(
+          i['_id'],
+          i['nomeArquivo'],
+          i['tamanhoArquivo'] + 0.0,
+          DateTime.parse(i['dataModificacao']),
+          _getFileIcon(i['nomeArquivo'].split('.').last));
+    }
+  }
+
   Widget _getIconButtom(IconData icon, Function() function) {
     return Platform.isIOS
         ? GestureDetector(onTap: () async => function(), child: Icon(icon))
         : FloatingActionButton(
             child: Icon(icon),
+            backgroundColor: Provider.of<CustomProvider>(context).corTema,
             onPressed: () async => await function(),
           );
   }
 
-  final ThemeData tema = ThemeData();
   @override
   Widget build(BuildContext context) {
     print("a");
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     _resetTransations();
+    GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
-    for (dynamic i in widget.getListaArquivos()) {
+    for (dynamic i in widget._listaArquivos) {
       _addTransaction(
           i['_id'],
           i['nomeArquivo'],
@@ -189,6 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
     bool isLandScape =
         (MediaQuery.of(context).orientation == Orientation.landscape);
     final appBar = AppBar(
+      backgroundColor: Provider.of<CustomProvider>(context).corTema,
       title: Text(
         'Meus Arquivos',
         style: TextStyle(
@@ -238,7 +217,13 @@ class _MyHomePageState extends State<MyHomePage> {
       actions: [
         IconButton(
             icon: const Icon(Icons.account_circle),
-            onPressed: () => {_scaffoldKey.currentState!.openEndDrawer()})
+            onPressed: () => {
+                  Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => PopupMenuButtonWidget()))
+                      .then((value) async => await _atualzaArquivos())
+                })
       ],
     );
     final avaliableHeigh = MediaQuery.of(context).size.height -
@@ -251,61 +236,18 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Container(
                 height: avaliableHeigh * (isLandScape ? 0.3 : 0.3),
-                child: Chart(_transactions, widget.getEspacoTotal())),
+                child: Chart(_transactions, widget._espacoTotal)),
             Container(
                 height: avaliableHeigh * 0.7,
                 child: TransactionList(
-                    _transactions, widget.getTokenLogin(), _removeTransaction)),
+                    _transactions, widget._tokenLogin, _removeTransaction)),
           ],
         ),
       ),
     );
-    var drawer = Drawer(
-      child: Builder(
-        builder: (context) =>
-            Consumer<EmailProvider>(builder: (context, provider, child) {
-          return Center(
-            child: ListView(
-              children: <Widget>[
-                UserAccountsDrawerHeader(
-                  accountName: Text(provider.email.split("@").first),
-                  accountEmail: Row(
-                    children: [
-                      Text(provider.email),
-                     
-                    ],
-                  ),
-                  currentAccountPicture: CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      provider.email[0].toUpperCase(),
-                      style: const TextStyle(fontSize: 40.0),
-                    ),
-                  ),
-                ),
-                Column(
-                  children: [
-                    ListTile(
-                      title: const Text('Item 1'),
-                      onTap: () {
-                        // Ação quando o Item 1 é selecionado
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Item 2'),
-                      onTap: () {
-                        // Ação quando o Item 2 é selecionado
-                      },
-                    ),
-                    Center(child: PopupMenuButtonWidget())
-                  ],
-                )
-              ],
-            ),
-          );
-        }),
-      ),
-    );
+    //  var drawer = Drawer(
+    //    child: PopupMenuButtonWidget(),
+    //  );
     return Platform.isIOS
         ? CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
@@ -313,17 +255,22 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             child: page,
           )
-        : Scaffold(
-            appBar: appBar,
-            body: page,
-            key: _scaffoldKey,
-            endDrawer: drawer,
-            floatingActionButton: _getIconButtom(
-              Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
-              _abreNavegadorDeArquivos,
-            ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
+        : Builder(
+            builder: (context) =>
+                Consumer<CustomProvider>(builder: (context, provider, child) {
+              return Scaffold(
+                appBar: appBar,
+                body: page,
+                key: _scaffoldKey,
+                // endDrawer: drawer,
+                floatingActionButton: _getIconButtom(
+                  Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
+                  _abreNavegadorDeArquivos,
+                ),
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.centerFloat,
+              );
+            }),
           );
   }
 }
