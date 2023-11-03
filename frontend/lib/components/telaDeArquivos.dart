@@ -1,3 +1,5 @@
+import 'package:expenses/providers/UserProvider.dart';
+
 import 'Alerta.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +14,6 @@ import 'package:file_picker/file_picker.dart';
 import 'menuCores.dart';
 import '../providers/customizationProvider.dart';
 import 'package:provider/provider.dart';
-
-
 
 class TelaDeArquivos extends StatelessWidget {
   final String _tokenLogin;
@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     setState(() {
-      _transactions.add(newTransaction);
+      _transactions.insert(0, newTransaction);
     });
   }
 
@@ -207,7 +207,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 actions: <Widget>[
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Provider.of<CustomProvider>(context).corTema,
+                      backgroundColor:
+                          Provider.of<CustomProvider>(context).corTema,
                     ),
                     child: const Text('Não'),
                     onPressed: () {
@@ -260,45 +261,49 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
     var drawer = Drawer(
-      child: ListView(
-        children: <Widget>[
-          UserAccountsDrawerHeader(
-            accountName: const Text("Usuário"),
-            accountEmail: Row(
-              children: [
-                const Text("usuario@exemplo.com"),
-                IconButton(
-                    icon: const Icon(
-                        Icons.edit), // Ícone que será exibido no botão
-                    onPressed: () => {})
+      child: Builder(
+        builder: (context) =>
+            Consumer<EmailProvider>(builder: (context, provider, child) {
+          return Center(
+            child: ListView(
+              children: <Widget>[
+                UserAccountsDrawerHeader(
+                  accountName: Text(provider.email.split("@").first),
+                  accountEmail: Row(
+                    children: [
+                      Text(provider.email),
+                     
+                    ],
+                  ),
+                  currentAccountPicture: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      provider.email[0].toUpperCase(),
+                      style: const TextStyle(fontSize: 40.0),
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    ListTile(
+                      title: const Text('Item 1'),
+                      onTap: () {
+                        // Ação quando o Item 1 é selecionado
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Item 2'),
+                      onTap: () {
+                        // Ação quando o Item 2 é selecionado
+                      },
+                    ),
+                    Center(child: PopupMenuButtonWidget())
+                  ],
+                )
               ],
             ),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Text(
-                "U",
-                style: TextStyle(fontSize: 40.0),
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              ListTile(
-                title: const Text('Item 1'),
-                onTap: () {
-                  // Ação quando o Item 1 é selecionado
-                },
-              ),
-              ListTile(
-                title: const Text('Item 2'),
-                onTap: () {
-                  // Ação quando o Item 2 é selecionado
-                },
-              ),
-              PopupMenuButtonWidget()
-            ],
-          )
-        ],
+          );
+        }),
       ),
     );
     return Platform.isIOS

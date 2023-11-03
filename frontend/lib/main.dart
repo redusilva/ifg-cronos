@@ -10,17 +10,28 @@ import 'components/planos_DropDown.dart';
 import "dart:convert";
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
+import "providers/UserProvider.dart";
 import 'providers/customizationProvider.dart';
+
 import 'package:provider/provider.dart';
+
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => CustomProvider(),
+    MultiProvider(
+      providers: [
+        // Exemplo de múltiplos provedores
+        ChangeNotifierProvider<CustomProvider>(
+          create: (context) => CustomProvider(),
+        ),
+        ChangeNotifierProvider<EmailProvider>(
+          create: (context) => EmailProvider(),
+        ),
+        // Adicione quantos provedores forem necessários
+      ],
       child: ExpensesApp(),
     ),
   );
 }
-
 
 class ExpensesApp extends StatelessWidget {
   ExpensesApp({Key? key}) : super(key: key);
@@ -141,6 +152,7 @@ _dadosLogin(String email, String senha, BuildContext context) async {
     if (decode["usuarioLogado"] == true) {
       dynamic resposta =
           await pegaArquivos(decode['token'], decode['idUsuario']);
+    
       Navigator.push(
         context,
         MaterialPageRoute(

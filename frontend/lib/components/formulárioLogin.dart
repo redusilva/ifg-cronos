@@ -3,6 +3,7 @@ import 'adaptative_button.dart';
 import 'adaptative_text_field.dart';
 import 'package:provider/provider.dart';
 import '../providers/customizationProvider.dart';
+import '../providers/UserProvider.dart';
 
 class FormularioLogin extends StatefulWidget {
   final void Function(String, String, BuildContext) onSubmit;
@@ -39,22 +40,43 @@ class _FormularioLoginState extends State<FormularioLogin> {
                   fontSize: 20, // Tamanho da fonte do título
                   fontWeight: FontWeight.bold, // Estilo de fonte em negrito
                 )),
-            AdaptativeTextField(
-                label: "Email",
-                controller: _emailontroller,
-                keyboardType: TextInputType.emailAddress,
-                onSubmitted: (_) => _submitForm()),
+            Builder(
+              builder: (context) =>
+                  Consumer<EmailProvider>(builder: (context, provider, child) {
+                return AdaptativeTextField(
+                    label: "Email",
+                    controller: _emailontroller,
+                    keyboardType: TextInputType.emailAddress,
+                    onSubmitted: (_) {
+                      _submitForm();
+                    });
+              }),
+            ),
             AdaptativeTextField(
                 label: "Senha",
                 controller: _senhaController,
                 keyboardType: TextInputType.visiblePassword,
-                onSubmitted: (_) => _submitForm()),
+                onSubmitted: (_) {
+                  _submitForm();
+                }),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                AdaptativeButton("Entrar", Provider.of<CustomProvider>(context).corTema, _submitForm),
-                AdaptativeButton(
-                    "Cancelar", Colors.red[900], () => Navigator.of(context).pop())
+                Builder(
+                  builder: (context) => Consumer<EmailProvider>(
+                      builder: (context, provider, child) {
+                    return AdaptativeButton(
+                      "Entrar",
+                      Provider.of<CustomProvider>(context).corTema,
+                      () => {
+                        _submitForm(),
+                        provider.defineUsuario(_emailontroller.text),
+                      },
+                    );
+                  }),
+                ),
+                AdaptativeButton("Cancelar", Colors.red[900],
+                    () => Navigator.of(context).pop())
               ],
             ),
           ],
