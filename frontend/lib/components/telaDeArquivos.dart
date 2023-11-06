@@ -1,4 +1,4 @@
-import 'package:expenses/components/menuCores.dart';
+import 'package:expenses/components/telaDePersonaliza%C3%A7%C3%A3o.dart';
 import 'package:expenses/providers/UserProvider.dart';
 
 import 'Alerta.dart';

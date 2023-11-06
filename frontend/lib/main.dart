@@ -14,14 +14,27 @@ import "providers/UserProvider.dart";
 import 'providers/customizationProvider.dart';
 import 'providers/fileProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async {
+  Color corPricipal = Colors.green;
+  SharedPreferences _prefs = await SharedPreferences.getInstance();
+  String savedData = _prefs.getString("corPrincipal") ?? "";
+
+  if (savedData != "") {
+    String valorHexadecimal = json.decode(savedData);
+
+    int valorInteiro = int.parse(valorHexadecimal.replaceFirst('#', ''),
+        radix: 16); // Converte o hexadecimal para um inteiro
+
+    corPricipal = Color(valorInteiro);
+  }
   runApp(
     MultiProvider(
       providers: [
         // Exemplo de múltiplos provedores
         ChangeNotifierProvider<CustomProvider>(
-          create: (context) => CustomProvider(),
+          create: (context) => CustomProvider(corPricipal),
         ),
         ChangeNotifierProvider<EmailProvider>(
           create: (context) => EmailProvider(),
@@ -51,11 +64,8 @@ class ExpensesApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: tema.copyWith(
             colorScheme: tema.colorScheme.copyWith(
-              primary:
-                  Provider.of<CustomProvider>(context).corTema,
-              secondary:
-                  Provider.of<CustomProvider>(context).corTema
-            ),
+                primary: Provider.of<CustomProvider>(context).corTema,
+                secondary: Provider.of<CustomProvider>(context).corTema),
             textTheme: tema.textTheme.copyWith(
               titleLarge: const TextStyle(
                 fontFamily: 'OpenSans',
