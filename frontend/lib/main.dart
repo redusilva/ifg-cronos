@@ -93,11 +93,14 @@ class ExpensesApp extends StatelessWidget {
 }
 
 _abrirLogin(BuildContext context) async {
+  SharedPreferences _prefs = await SharedPreferences.getInstance();
+  
+  
   showModalBottomSheet(
     context: context,
     isDismissible: false,
     builder: (_) {
-      return FormularioLogin(_dadosLogin, context);
+      return FormularioLogin(_prefs, _dadosLogin, context);
     },
   );
 }
@@ -147,18 +150,17 @@ _dadosCadastro(
         actions: <Widget>[
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[700],
+              backgroundColor: Provider.of<CustomProvider>(context).corTema,
             ),
             child: const Text('Fechar'),
             onPressed: () {
-              Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
           ),
         ],
       );
     },
-  );
+  ).then((value) => Navigator.of(context).pop());
 }
 
 _dadosLogin(String email, String senha, BuildContext context) async {
@@ -168,6 +170,7 @@ _dadosLogin(String email, String senha, BuildContext context) async {
     return;
   }
   if (resposta.body[0] == '{') {
+
     dynamic decode = json.decode(resposta.body);
     if (decode["usuarioLogado"] == true) {
       resposta = await pegaArquivos(decode['token'], decode['idUsuario']);

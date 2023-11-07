@@ -1,4 +1,4 @@
-import 'package:expenses/components/telaDePersonaliza%C3%A7%C3%A3o.dart';
+import 'package:expenses/components/telaDeConfiguracao.dart';
 import 'package:expenses/providers/UserProvider.dart';
 
 import 'Alerta.dart';
@@ -16,25 +16,41 @@ import '../providers/customizationProvider.dart';
 import 'package:provider/provider.dart';
 
 class TelaDeArquivos extends StatefulWidget {
-  String _tokenLogin;
-  String _idUsuario;
-  List<dynamic> _listaArquivos;
-  double _espacoTotal;
+  final String _tokenLogin;
+  final String _idUsuario;
+  final List<dynamic> _listaArquivos;
+  final double _espacoTotal;
 
-  TelaDeArquivos(
+  const TelaDeArquivos(
       this._tokenLogin, this._idUsuario, this._listaArquivos, this._espacoTotal,
       {Key? key})
       : super(key: key);
 
   @override
-  State<TelaDeArquivos> createState() => _MyHomePageState();
+  State<TelaDeArquivos> createState() => _EstadoDaTela(_listaArquivos);
 }
 
-class _MyHomePageState extends State<TelaDeArquivos> {
+class _EstadoDaTela extends State<TelaDeArquivos> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
   List<Transaction> _transactions = [];
+  List<dynamic> _listaArquivos = [];
+
+  _EstadoDaTela(final dynamic arquivos) {
+    _listaArquivos = arquivos;
+    print(_listaArquivos);
+  }
 
   void _resetTransations() {
     _transactions = [];
+  }
+
+  _atualizaArquivos() async {
+    dynamic resposta =
+        await pegaArquivos(widget._tokenLogin, widget._idUsuario);
+    setState(() {
+      _listaArquivos = resposta["arquivos"];
+    });
   }
 
   _addTransaction(String idExterno, String title, double value, DateTime date,
@@ -54,28 +70,15 @@ class _MyHomePageState extends State<TelaDeArquivos> {
   }
 
   _removeTransaction(String id) async {
-    dynamic resposta =
-        await pegaArquivos(widget._tokenLogin, widget._idUsuario);
-    widget._listaArquivos = resposta['arquivos'];
-    setState(() {
-      _transactions.removeWhere((tr) => tr.id == id);
-      _resetTransations();
+    _transactions.removeWhere((tr) => tr.id == id);
 
-      for (dynamic i in widget._listaArquivos) {
-        _addTransaction(
-            i['_id'],
-            i['nomeArquivo'],
-            i['tamanhoArquivo'] + 0.0,
-            DateTime.parse(i['dataModificacao']),
-            _getFileIcon(i['nomeArquivo'].split('.').last));
-      }
-    });
+    await _atualizaArquivos();
   }
 
   // Mapeamento de extensão de arquivo para ícone
   final Map<String, IconData> _fileIconMapping = {
     'txt': Icons.description,
-    'doc': Icons.book,
+    'docx': Icons.book,
     'pdf': Icons.picture_as_pdf,
     'jpg': Icons.image,
     'png': Icons.image,
@@ -84,6 +87,7 @@ class _MyHomePageState extends State<TelaDeArquivos> {
 
     // Adicione mais extensões e ícones conforme necessário
   };
+
   IconData _getFileIcon(String fileName) {
     final extension = fileName.split('.').last.toLowerCase();
     return _fileIconMapping[extension] ??
@@ -102,14 +106,8 @@ class _MyHomePageState extends State<TelaDeArquivos> {
         bool enviou =
             await uploadFile(widget._tokenLogin, widget._idUsuario, file);
         if (enviou) {
-          dynamic resposta =
-              await pegaArquivos(widget._tokenLogin, widget._idUsuario);
-          widget._listaArquivos = resposta["arquivos"];
-          setState(() {
-            _resetTransations();
-          });
-          ;
           Alerta(context, "Sucesso!", "O arquivo foi enviado!");
+          await _atualizaArquivos();
           return;
         }
         Alerta(context, "Erro ao enviar o arquivo! ",
@@ -117,23 +115,6 @@ class _MyHomePageState extends State<TelaDeArquivos> {
       }
     } else {
       // O usuário cancelou a seleção de arquivos.
-    }
-  }
-
-  _atualzaArquivos() async {
-    dynamic resposta =
-        await pegaArquivos(widget._tokenLogin, widget._idUsuario);
-    widget._listaArquivos = resposta["arquivos"];
-    setState(() {
-      _resetTransations();
-    });
-    for (dynamic i in widget._listaArquivos) {
-      _addTransaction(
-          i['_id'],
-          i['nomeArquivo'],
-          i['tamanhoArquivo'] + 0.0,
-          DateTime.parse(i['dataModificacao']),
-          _getFileIcon(i['nomeArquivo'].split('.').last));
     }
   }
 
@@ -151,11 +132,9 @@ class _MyHomePageState extends State<TelaDeArquivos> {
   Widget build(BuildContext context) {
     print("a");
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
     _resetTransations();
-    GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
-    for (dynamic i in widget._listaArquivos) {
+    for (dynamic i in _listaArquivos) {
       _addTransaction(
           i['_id'],
           i['nomeArquivo'],
@@ -216,14 +195,8 @@ class _MyHomePageState extends State<TelaDeArquivos> {
       ),
       actions: [
         IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () => {
-                  Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PopupMenuButtonWidget()))
-                      .then((value) async => await _atualzaArquivos())
-                })
+            icon: const Icon(Icons.settings),
+            onPressed: () => {_scaffoldKey.currentState?.openEndDrawer()})
       ],
     );
     final avaliableHeigh = MediaQuery.of(context).size.height -
@@ -245,9 +218,9 @@ class _MyHomePageState extends State<TelaDeArquivos> {
         ),
       ),
     );
-    //  var drawer = Drawer(
-    //    child: PopupMenuButtonWidget(),
-    //  );
+    var drawer = Drawer(
+      child: TelaDeConfiguracao(),
+    );
     return Platform.isIOS
         ? CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
@@ -262,7 +235,7 @@ class _MyHomePageState extends State<TelaDeArquivos> {
                 appBar: appBar,
                 body: page,
                 key: _scaffoldKey,
-                // endDrawer: drawer,
+                endDrawer: drawer,
                 floatingActionButton: _getIconButtom(
                   Platform.isIOS ? CupertinoIcons.cloud_upload : Icons.upload,
                   _abreNavegadorDeArquivos,
