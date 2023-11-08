@@ -13,34 +13,55 @@ class FormularioLogin extends StatefulWidget {
   final void Function(String, String, BuildContext) onSubmit;
   final BuildContext _context;
   final SharedPreferences _prefs;
-  FormularioLogin(this._prefs,this.onSubmit, this._context, {Key? key}) : super(key: key) {}
+  final String _emailSalvo;
+  final String _senhaSalvo;
+  final bool _lembrar;
+
+  FormularioLogin(this._lembrar, this._emailSalvo, this._senhaSalvo,
+      this._prefs, this.onSubmit, this._context,
+      {Key? key})
+      : super(key: key) {}
 
   @override
-  State<FormularioLogin> createState() => _FormularioLoginState();
+  State<FormularioLogin> createState() =>
+      _FormularioLoginState(_lembrar, _emailSalvo, _senhaSalvo);
 }
 
 class _FormularioLoginState extends State<FormularioLogin> {
-
-  
   final _emailontroller = TextEditingController();
-  
+
   final _senhaController = TextEditingController();
 
   bool _textoSenhaOculto = true;
 
-  bool preferenciasSalvas=true;
+  bool _preferenciasSalvas = false;
 
- 
-
-  Future<void> _armazenaPreferencias() async {
-    
-  
-    await widget._prefs.setString("email", json.encode(_emailontroller.text));
-    await widget._prefs.setString("senha", json.encode(_senhaController.text));
-    
+  _FormularioLoginState(bool lembrar, String emailSalvo, String senhaSalvo) {
+    if (lembrar) {
+      _preferenciasSalvas = true;
+      _emailontroller.text = emailSalvo;
+      _senhaController.text = senhaSalvo;
+    }
   }
 
-  _submitForm() async{
+  //_FormularioLoginState(SharedPreferences _prefs){
+
+  //}
+
+  Future<void> _armazenaPreferencias() async {
+    if (_preferenciasSalvas) {
+      await widget._prefs.setString("email", json.encode(_emailontroller.text));
+      await widget._prefs
+          .setString("senha", json.encode(_senhaController.text));
+    } else {
+      await widget._prefs.setString("email", json.encode(""));
+      await widget._prefs.setString("senha", json.encode(""));
+    }
+
+    await widget._prefs.setBool("lembrar", (_preferenciasSalvas));
+  }
+
+  _submitForm() async {
     final email = _emailontroller.text;
     final senha = (_senhaController.text);
 
@@ -88,8 +109,8 @@ class _FormularioLoginState extends State<FormularioLogin> {
                           controller: _senhaController,
                           obscureText: _textoSenhaOculto,
                           keyboardType: TextInputType.visiblePassword,
-                          onSubmitted: (_) async{
-                           await _submitForm();
+                          onSubmitted: (_) async {
+                            await _submitForm();
                           },
                           placeholder: "Senha",
                           padding: const EdgeInsets.symmetric(
@@ -106,7 +127,6 @@ class _FormularioLoginState extends State<FormularioLogin> {
                         keyboardType: TextInputType.visiblePassword,
                         obscureText: _textoSenhaOculto,
                         onSubmitted: (_) async {
-                       
                           await _submitForm();
                         },
                         decoration: InputDecoration(
@@ -126,18 +146,37 @@ class _FormularioLoginState extends State<FormularioLogin> {
                           color: Colors.black, // Defina a cor do texto do campo
                         ),
                       ),
-                Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-                  IconButton(
-                    icon: Icon(_textoSenhaOculto
-                        ? Icons.visibility_off
-                        : Icons.visibility),
-                    onPressed: () => {
-                      setState(() {
-                        _textoSenhaOculto = !_textoSenhaOculto;
-                      }),
-                    },
-                  )
-                ]),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: Icon(_textoSenhaOculto
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () => {
+                          setState(() {
+                            _textoSenhaOculto = !_textoSenhaOculto;
+                          }),
+                        },
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Lembrar minha identificação",
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          Checkbox(
+                            value: _preferenciasSalvas,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _preferenciasSalvas = value!;
+                              });
+                            },
+                          ),
+                        ],
+                      )
+                    ]),
               ],
             ),
             Row(

@@ -94,13 +94,27 @@ class ExpensesApp extends StatelessWidget {
 
 _abrirLogin(BuildContext context) async {
   SharedPreferences _prefs = await SharedPreferences.getInstance();
-  
-  
+
+  bool _lembrar = _prefs.getBool("lembrar") ?? false;
+
+  String _emailSalvo = _prefs.getString("email") ?? "";
+
+  String _senhaSalvo = _prefs.getString("senha") ?? "";
+
+  if (_emailSalvo != "") {
+    _emailSalvo = json.decode(_emailSalvo);
+  }
+
+  if (_senhaSalvo != "") {
+    _senhaSalvo = json.decode(_senhaSalvo);
+  }
+
   showModalBottomSheet(
     context: context,
     isDismissible: false,
     builder: (_) {
-      return FormularioLogin(_prefs, _dadosLogin, context);
+      return FormularioLogin(
+          _lembrar, _emailSalvo, _senhaSalvo, _prefs, _dadosLogin, context);
     },
   );
 }
@@ -170,7 +184,6 @@ _dadosLogin(String email, String senha, BuildContext context) async {
     return;
   }
   if (resposta.body[0] == '{') {
-
     dynamic decode = json.decode(resposta.body);
     if (decode["usuarioLogado"] == true) {
       resposta = await pegaArquivos(decode['token'], decode['idUsuario']);
