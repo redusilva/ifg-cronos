@@ -5,6 +5,15 @@ import path from "path";
 import { buscaTodosPlanos } from "./planos";
 import { atualizarEspacoUtilizadoCliente, buscaArmazenamentoCliente, buscaUsuarioPorId } from "./user";
 
+interface informacoesArquivo {
+    _id: ObjectId;
+    idUsuario: string;
+    tamanhoArquivo: number;
+    nomeArquivo: string;
+    dataModificacao: Date;
+    tipoMIME: string;
+}
+
 const database = client.db('cronos');
 const collection = database.collection('arquivos');
 
@@ -34,7 +43,7 @@ export const buscaArquivosPorIdCliente = async (idCliente: string) => {
             ...armazenamentoCliente,
             arquivos: resultado
         };
-        
+
     } catch (error) {
         console.log(error);
         throw new Error('Erro ao buscar arquivos.');
@@ -44,7 +53,7 @@ export const buscaArquivosPorIdCliente = async (idCliente: string) => {
 export const buscaArquivoPorId = async (idArquivo: string) => {
     try {
         const consulta = { _id: new ObjectId(idArquivo) };
-        const resultado = await collection.find(consulta).toArray();
+        const resultado = await collection.find(consulta).toArray() as informacoesArquivo[];
         return resultado;
     } catch (error) {
         console.log(error);
@@ -113,13 +122,13 @@ export const validaSeUsuarioTemEspacoDisponivel = async (usuario: any, arquivos:
         const planoUsuario = todosPlanos.filter((plano: any) => {
             return usuario.idPlano === plano._id.toString();
         });
-        
+
         let tamanhoArquivos = 0;
         arquivos.map((arquivo: any) => {
             tamanhoArquivos += arquivo.size
         });
 
-        if((usuario.armazenamentoUsado + tamanhoArquivos) >= planoUsuario[0].size) {
+        if ((usuario.armazenamentoUsado + tamanhoArquivos) >= planoUsuario[0].size) {
             return false;
         }
 

@@ -11,4 +11,6 @@ router.delete('/:id', middleware, FileController.excluirArquivos);
 
 router.get('/:id', middleware, FileController.arquivosCliente);
 
+router.get('/download/:id', middleware, FileController.baixarArquivo);
+
 export default router;

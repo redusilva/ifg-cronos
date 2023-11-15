@@ -16,6 +16,14 @@ interface Usuario {
     armazenamentoUsado?: number;
 }
 
+interface Token {
+    id: string;
+    email: string;
+    idPlano: string;
+    iat: number;
+    exp: number;
+}
+
 const saltosBCrypt = 14;
 const database = client.db('clientes');
 const collection = database.collection('usuarios');
@@ -158,9 +166,18 @@ const calculaDiferencaEmHoras = (dataInicial: Date, dataFinal: Date) => {
     return resultadoFinal;
 }
 
+const descriptografaToken = (token: string) => {
+    try {
+        const tokenDescriptografado = jwt.verify(token, String(process.env.SECRET)) as Token;
+        return tokenDescriptografado;
+    } catch (error: any) {
+        return null;
+    }
+}
+
 const validaSessaoUsuario = async (token: string) => {
     try {
-        const tokenDescriptografado = jwt.verify(token, String(process.env.SECRET)) as any;
+        const tokenDescriptografado = jwt.verify(token, String(process.env.SECRET)) as Token;
         const idUsuario = new ObjectId(tokenDescriptografado.id);
         const resultado = await collection.findOne({ _id: idUsuario });
 
@@ -182,7 +199,7 @@ const atualizarEspacoUtilizadoCliente = async (idUsuario: string, query: any) =>
     try {
         const filtro = { _id: new ObjectId(idUsuario) };
         await collection.updateOne(filtro, query);
-        
+
         const armazenamento = await buscaArmazenamentoCliente(idUsuario);
         return armazenamento;
 
@@ -214,5 +231,6 @@ export {
     buscaUsuarioPorId,
     validaSessaoUsuario,
     atualizarEspacoUtilizadoCliente,
-    buscaArmazenamentoCliente
+    buscaArmazenamentoCliente,
+    descriptografaToken
 }

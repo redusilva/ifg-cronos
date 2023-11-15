@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import { atualizarEspacoUtilizadoCliente, buscaUsuarioPorId, validaSessaoUsuario } from '../helpers/user';
+import { atualizarEspacoUtilizadoCliente, buscaUsuarioPorId, descriptografaToken, validaSessaoUsuario } from '../helpers/user';
 import fs from 'fs';
 import path from 'path';
 import { buscaArquivoPorId, buscaArquivosPorIdCliente, deletarArquivoNoBanco, excluirArquivosSalvos, excluirArquivosTemporarios, salvaArquivos, validaSeUsuarioTemEspacoDisponivel } from '../helpers/files';
@@ -46,7 +46,7 @@ export class FileController {
             }
 
             const temEspacoDisponivel = await validaSeUsuarioTemEspacoDisponivel(cliente, arquivos);
-            if(!temEspacoDisponivel) {
+            if (!temEspacoDisponivel) {
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
                 return res.status(400).send('Espaco de armazenamento insuficiente!');
             }
@@ -126,7 +126,7 @@ export class FileController {
 
     static async excluirArquivos(req: Request, res: Response) {
         try {
-            
+
             const token = String(req.headers.authorization).split('Bearer ')[1];
 
             if (!token) {
@@ -146,7 +146,7 @@ export class FileController {
             }
 
             const arquivo = await buscaArquivoPorId(idArquivo);
-            if(!arquivo || arquivo.length === 0) {
+            if (!arquivo || arquivo.length === 0) {
                 console.log(4)
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[] || []);
                 return res.status(400).send('Arquivo não encontrado no sistema!');
@@ -163,6 +163,70 @@ export class FileController {
         } catch (error: any) {
             console.log("Erro na controller excluirArquivosTemporarios", error);
             return res.status(500).send(error.message);
+        }
+    }
+
+    static async baixarArquivo(req: Request, res: Response) {
+
+        let objRetorno = {
+            mensagem: 'Arquivo(s) baixado(s) com sucesso.',
+            status: 200,
+            sucesso: true
+        };
+
+        try {
+            const token = String(req.headers.authorization).split('Bearer ')[1];
+
+            if (!token) {
+                await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
+                return res.status(401).json({ error: 'Usuário não autorizado!.' });
+            }
+
+            if (!await validaSessaoUsuario(token)) {
+                await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
+                return res.status(401).json({ error: 'Sessão expirada! Faça login antes de prosseguir!' });
+            }
+
+            const idArquivo = req.params.id;
+            const informacoesArquivo = await buscaArquivoPorId(idArquivo);
+            const tokenDescriptografado = descriptografaToken(token);
+            console.log("Informações arquivo: ", informacoesArquivo);
+            console.log("Token descriptografado: ", tokenDescriptografado);
+
+            if (informacoesArquivo[0].idUsuario !== tokenDescriptografado?.id) {
+                objRetorno = {
+                    mensagem: 'Este usuário não tem autorização para baixar este arquivo!',
+                    status: 401,
+                    sucesso: false
+                };
+                return res.status(objRetorno.status).json({ ...objRetorno });
+            }
+
+            const baseCaminho = path.join(__dirname, '..', '..');
+            const pastaDestino = path.join(baseCaminho, 'database');
+            const pastaUsuario = path.join(pastaDestino, informacoesArquivo[0].idUsuario);
+            const caminhoArquivo = path.join(pastaUsuario, `${idArquivo}.${informacoesArquivo[0].tipoMIME.split('/')[1]}`);
+
+            if (!fs.existsSync(caminhoArquivo)) {
+                objRetorno = {
+                    mensagem: 'Arquivo não encontrado no sistema!',
+                    status: 404,
+                    sucesso: false
+                }
+                return res.status(objRetorno.status).json({ ...objRetorno });
+            }
+
+            console.log("Caminho do arquivo: ", caminhoArquivo);
+            res.download(caminhoArquivo, `${informacoesArquivo[0].nomeArquivo}`);
+
+        } catch (error) {
+            console.log(error);
+            objRetorno = {
+                mensagem: 'Erro ao baixar arquivo(s).',
+                status: 500,
+                sucesso: false
+            };
+            return res.status(objRetorno.status).json({ ...objRetorno });
         }
     }
 

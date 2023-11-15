@@ -228,6 +228,39 @@
           }
         }
       }
+    },
+    "/files/download/{id}": {
+      "get": {
+        "description": "Nessa rota, será possível fazer o download de arquivos armazenados no sistema!",
+        "summary": "",
+        "tags": [
+          "Files"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do arquivo que se deseja baixar.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Download do arquivo iniciado com sucesso!"
+          },
+          "500": {
+            "description": "Erro interno no servidor!"
+          }
+        }
+      }
     }
   }
 }
