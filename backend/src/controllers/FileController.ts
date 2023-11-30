@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { atualizarEspacoUtilizadoCliente, buscaUsuarioPorId, descriptografaToken, validaSessaoUsuario } from '../helpers/user';
 import fs from 'fs';
 import path from 'path';
-import { buscaArquivoPorId, buscaArquivosPorIdCliente, deletarArquivoNoBanco, excluirArquivosSalvos, excluirArquivosTemporarios, salvaArquivos, validaSeUsuarioTemEspacoDisponivel } from '../helpers/files';
+import { buscaArquivoPorId, buscaArquivosPorIdCliente, deletarArquivoNoBanco, excluirArquivosSalvos, excluirArquivosTemporarios, salvaArquivos, validaSeUsuarioTemEspacoDisponivel, validaSegurancaArquivo } from '../helpers/files';
 
 dotenv.config();
 
@@ -11,8 +11,8 @@ export class FileController {
 
     static async enviarArquivo(req: Request, res: Response) {
         try {
-            const token = String(req.headers.authorization).split('Bearer ')[1];
 
+            const token = String(req.headers.authorization).split('Bearer ')[1];
             if (!token) {
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
                 return res.status(401).json({ error: 'Usuário não autorizado!.' });
@@ -24,14 +24,12 @@ export class FileController {
             }
 
             const { idCliente } = req.body;
-
             if (!idCliente) {
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
                 return res.status(400).send('Dados incompletos!');
             }
 
             const cliente = await buscaUsuarioPorId(idCliente);
-
             if (!cliente) {
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
                 return res.status(400).send('Usuário não encontrado no sistema!');
@@ -39,7 +37,6 @@ export class FileController {
 
             const arquivos = req.files as Express.Multer.File[];
             console.log(arquivos);
-
             if (!arquivos || arquivos.length === 0) {
                 await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
                 return res.status(400).send('Nenhum arquivo foi enviado.');
@@ -55,6 +52,23 @@ export class FileController {
             const pastaOrigem = path.join(baseCaminho, 'uploads');
             const pastaDestino = path.join(baseCaminho, 'database');
             let tamanhoArquivos = 0;
+            let arquivosSeguros = true;
+
+            await Promise.all(arquivos.map(async (arquivo) => {
+                const caminhoOrigem = path.join(pastaOrigem, arquivo.filename);
+                const validacao = await validaSegurancaArquivo(arquivo, caminhoOrigem);
+                console.log("\n\n\nresultado: ", validacao);
+
+                if(!validacao.valido){
+                    arquivosSeguros = false;
+                }
+
+            }));
+
+            if(!arquivosSeguros){
+                await excluirArquivosTemporarios(req.files as Express.Multer.File[]);
+                return res.status(401).send('O arquivo enviado não é seguro!');
+            }
 
             await Promise.all(arquivos.map(async (arquivo) => {
                 const salvaArquivo = await salvaArquivos(arquivo, idCliente);
@@ -65,7 +79,7 @@ export class FileController {
                 }
 
                 const caminhoOrigem = path.join(pastaOrigem, arquivo.filename);
-                const caminhoDestino = path.join(pastaUsuario, `${salvaArquivo.insertedId.toString()}.${arquivo.mimetype.split('/')[1]}`);
+                const caminhoDestino = path.join(pastaUsuario, `${salvaArquivo.insertedId.toString()}.${arquivo.mimetype.split('/')[1]}`);                
 
                 fs.rename(caminhoOrigem, caminhoDestino, (err) => {
                     if (err) {

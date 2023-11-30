@@ -50,6 +50,42 @@ export const buscaArquivosPorIdCliente = async (idCliente: string) => {
     }
 }
 
+export const validaSegurancaArquivo = async (arquivo: any, caminhoArquivo: string) => {
+
+    let objRetorno = {
+        mensagem: 'Arquivo validado com sucesso!',
+        valido: true
+    };
+
+    try {
+        const conteudo = fs.readFileSync(caminhoArquivo);
+        const blob = new Blob([conteudo], { type: arquivo.mimetype });
+        let formdata = new FormData();
+        formdata.append("file", blob);
+
+        let requestOptions = {
+            method: 'POST',
+            body: formdata
+        };
+
+        const req = await fetch("http://localhost:5000/api/check", requestOptions);
+        const res = await req.json();
+        console.log("Validação arquivo: ", res);
+
+        if(!res.valid) {
+            objRetorno = { mensagem: 'Arquivo inválido.', valido: false };
+            return objRetorno;
+        }
+
+        return objRetorno;
+
+    } catch (error) {
+        console.log(error);
+        objRetorno = { mensagem: 'Erro ao validar o arquivo.', valido: false };
+        return objRetorno;
+    }
+}
+
 export const buscaArquivoPorId = async (idArquivo: string) => {
     try {
         const consulta = { _id: new ObjectId(idArquivo) };
